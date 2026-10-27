@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "grindpvp",
+  "version": "${version}",
+  "name": "GrindPvP",
+  "description": "GrindPvP profiles, kits and competitive leaderboards.",
+  "authors": ["GrindPvP"],
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "de.grindpvp.GrindPvPMod"
+    ],
+    "client": [
+      "de.grindpvp.client.GrindPvPClient"
+    ]
+  },
+  "mixins": [
+    {
+      "config": "grindpvp.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
