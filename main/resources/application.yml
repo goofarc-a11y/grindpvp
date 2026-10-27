@@ -1,0 +1,20 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:h2:file:./data/grindpvp;MODE=PostgreSQL}
+    username: ${DATABASE_USER:sa}
+    password: ${DATABASE_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+grindpvp:
+  admin-code: ${GRINDPVP_ADMIN_CODE:1203}
+  server-token: ${GRINDPVP_SERVER_TOKEN:}
