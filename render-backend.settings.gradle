@@ -1,0 +1,2 @@
+rootProject.name = "grindpvp-backend-render"
+rootProject.buildFileName = "render-backend.gradle"

@@ -1,0 +1,55 @@
+plugins {
+    id "java"
+    id "org.springframework.boot" version "3.5.7"
+    id "io.spring.dependency-management" version "1.1.7"
+}
+
+group = "de.grindpvp"
+version = "1.0.0"
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+def backendJava = file("backend/src/main/java").exists()
+        ? "backend/src/main/java"
+        : "main/java"
+def backendResources = file("backend/src/main/resources").exists()
+        ? "backend/src/main/resources"
+        : "main/resources"
+def backendTests = file("backend/src/test/java").exists()
+        ? "backend/src/test/java"
+        : "test/java"
+
+sourceSets {
+    main {
+        java.setSrcDirs([backendJava])
+        resources.setSrcDirs([backendResources])
+    }
+    test {
+        java.setSrcDirs([backendTests])
+        resources.setSrcDirs(["backend/src/test/resources", "test/resources"])
+    }
+}
+
+dependencies {
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    runtimeOnly "org.postgresql:postgresql"
+    runtimeOnly "com.h2database:h2"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+}
+
+tasks.named("bootJar") {
+    archiveFileName = "backend-1.0.0.jar"
+}
+
+tasks.named("test") {
+    useJUnitPlatform()
+}
