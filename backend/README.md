@@ -65,8 +65,8 @@ but does not prove account ownership.
   `/tiers`, `/stats`; `GET /admin/matches`, `/logs`, `/players/{uuid}`
 
 The browser website uses these same endpoints and the same configured database.
-Set the backend's `CORS_ORIGINS` to the deployed website origin before using a
-cross-origin production deployment.
+The deployed GrindPvP website origin is allowed by default. Set `CORS_ORIGINS`
+to a comma-separated list to allow additional trusted origins.
 The production health response reports `database_engine`; it must say
 `postgresql`. Production startup now fails rather than silently accepting
 SQLite, which prevents a misconfigured Render service from creating an

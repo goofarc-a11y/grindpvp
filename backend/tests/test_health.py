@@ -72,6 +72,22 @@ def test_health_allows_configured_website_origin(monkeypatch) -> None:
     assert "authorization" in response.headers["access-control-allow-headers"].lower()
 
 
+def test_health_allows_official_website_origin_without_environment_configuration(monkeypatch) -> None:
+    monkeypatch.setattr(main, "initialize_database", lambda: None)
+    app = main.create_app(Settings())
+
+    response = TestClient(app).options(
+        "/leaderboard/overall",
+        headers={
+            "Origin": "https://grindpvp-blsu.onrender.com",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "https://grindpvp-blsu.onrender.com"
+
+
 def test_production_database_must_be_postgresql(monkeypatch) -> None:
     from app import database
 

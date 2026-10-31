@@ -4,6 +4,9 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+DEFAULT_CORS_ORIGINS = ("https://grindpvp-blsu.onrender.com",)
+
+
 class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = "sqlite:///./grindpvp.db"
@@ -32,7 +35,10 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        configured_origins = [
+            origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
+        ]
+        return list(dict.fromkeys((*DEFAULT_CORS_ORIGINS, *configured_origins)))
 
 
 @lru_cache
