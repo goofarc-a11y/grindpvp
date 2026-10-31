@@ -30,7 +30,7 @@ The root `render.yaml` defines the `grindpvp-website` static site alongside
 the existing backend and PostgreSQL resource. Connect the repository root to
 Render as a Blueprint; the website build uses `npm ci && npm run build` and
 publishes `Website/dist`. The expected origins are configured there:
-`https://grindpvp-website.onrender.com` for the website and
+`https://grindpvp-blsu.onrender.com` for the website and
 `https://grindpvp-backend-1.onrender.com` for its API. If Render assigns a
 different website hostname, update `CORS_ORIGINS` in the backend environment
 to the exact website origin and redeploy the backend.

@@ -23,6 +23,7 @@ import {
   LogOut,
   Medal,
   Moon,
+  RefreshCw,
   Search,
   Settings2,
   Shield,
@@ -163,6 +164,8 @@ function App() {
   const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) || "");
   const [statusMessage, setStatusMessage] = useState("");
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+  const [databaseEngine, setDatabaseEngine] = useState("");
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [adminLoading, setAdminLoading] = useState(false);
   const [matchRows, setMatchRows] = useState<PageResult<MatchRecord> | null>(null);
@@ -190,6 +193,18 @@ function App() {
   );
 
   useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (!document.hidden) setRefreshVersion((version) => version + 1);
+    };
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, []);
+
+  useEffect(() => {
     let active = true;
     api<Catalog>("/catalog")
       .then((data) => {
@@ -198,19 +213,26 @@ function App() {
       .catch((error: Error) => {
         if (active) setStatusMessage(`Could not load GrindPvP catalog: ${error.message}`);
       });
-    api<{ status: string }>("/health")
-      .then(() => active && setApiOnline(true))
+    api<{ status: string; database_engine?: string }>("/health")
+      .then((health) => {
+        if (active) {
+          setApiOnline(health.status === "ok");
+          setDatabaseEngine(health.database_engine || "");
+        }
+      })
       .catch(() => active && setApiOnline(false));
     return () => {
       active = false;
       window.clearTimeout(transitionTimeout.current);
     };
-  }, []);
+  }, [refreshVersion]);
 
   useEffect(() => {
     if (page !== "leaderboard") return;
     const controller = new AbortController();
+    setLeaderboard(null);
     setLoadingLeaderboard(true);
+    setStatusMessage("");
     const endpoint = selectedKit === "overall" ? "/leaderboard/overall" : `/leaderboard/${selectedKit}`;
     api<PageResult<LeaderboardEntry>>(`${endpoint}?${query({ page: leaderboardPage, page_size: PAGE_SIZE })}`, {
       signal: controller.signal,
@@ -221,7 +243,7 @@ function App() {
       })
       .finally(() => !controller.signal.aborted && setLoadingLeaderboard(false));
     return () => controller.abort();
-  }, [page, selectedKit, leaderboardPage]);
+  }, [page, selectedKit, leaderboardPage, refreshVersion]);
 
   useEffect(() => {
     if (!profileUuid) {
@@ -229,8 +251,11 @@ function App() {
       setMatches(null);
       return;
     }
+    if (page !== "my-profile" && page !== "profiles") return;
     const controller = new AbortController();
     setProfileLoading(true);
+    setProfile(null);
+    setMatches(null);
     api<Player>(`/profiles/${encodeURIComponent(profileUuid)}`, { signal: controller.signal })
       .then((data) => {
         setProfile(data);
@@ -249,7 +274,7 @@ function App() {
       .then(setMatches)
       .catch(() => !controller.signal.aborted && setMatches(null));
     return () => controller.abort();
-  }, [profileUuid]);
+  }, [page, profileUuid, refreshVersion]);
 
   useEffect(() => {
     if (page !== "admin" || !adminToken) return;
@@ -265,7 +290,7 @@ function App() {
     return () => {
       active = false;
     };
-  }, [page, adminToken]);
+  }, [page, adminToken, refreshVersion]);
 
   const performSearch = async (event?: FormEvent) => {
     event?.preventDefault();
@@ -402,9 +427,15 @@ function App() {
           ))}
         </nav>
         <div className="topbar-right">
-          <div className={`api-status ${apiOnline ? "online" : apiOnline === false ? "offline" : ""}`}>
-            <span className="status-dot" />{apiOnline ? "Live data" : apiOnline === false ? "Offline" : "Connecting"}
+          <div className={`api-status ${apiOnline ? "online" : apiOnline === false ? "offline" : ""}`}
+            title={databaseEngine ? `Connected database: ${databaseEngine}` : undefined}>
+            <span className="status-dot" />{apiOnline ? databaseEngine && databaseEngine !== "postgresql"
+              ? `Database: ${databaseEngine}` : "Live data" : apiOnline === false ? "Offline" : "Connecting"}
           </div>
+          <button type="button" className="admin-shortcut refresh-shortcut" aria-label="Refresh current data"
+            title="Refresh current data" onClick={() => setRefreshVersion((version) => version + 1)}>
+            <RefreshCw size={14} />
+          </button>
           <button type="button" data-sound-handled className={`admin-shortcut ${page === "admin" ? "active" : ""}`}
             onClick={() => changePage("admin")}><Shield size={15} /> Admin</button>
         </div>

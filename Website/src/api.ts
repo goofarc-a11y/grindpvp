@@ -26,6 +26,7 @@ export async function api<T>(
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
     signal: options.signal,
     credentials: "omit",
+    cache: "no-store",
   });
   if (response.status === 204) return undefined as T;
 

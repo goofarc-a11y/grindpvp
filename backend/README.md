@@ -67,6 +67,10 @@ but does not prove account ownership.
 The browser website uses these same endpoints and the same configured database.
 Set the backend's `CORS_ORIGINS` to the deployed website origin before using a
 cross-origin production deployment.
+The production health response reports `database_engine`; it must say
+`postgresql`. Production startup now fails rather than silently accepting
+SQLite, which prevents a misconfigured Render service from creating an
+independent ephemeral player database.
 
 Admin create, verify, role, title, tier, statistics, and match operations accept
 Minecraft names. New player creation resolves the official UUID server-side;
