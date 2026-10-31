@@ -947,7 +947,7 @@ function AdminPage({ token, catalog, loading, status, logs, matches, showPasswor
       {status && <Notice message={status} />}
       <div className="admin-layout">
         <div className="admin-actions-column">
-          <AdminSection title="Player management" subtitle="Create, verify, assign roles and titles." icon={UsersRound}>
+          <AdminSection title="Player management" subtitle="Create, verify, assign roles and titles. Banned players are hidden from leaderboards." icon={UsersRound}>
             <form className="admin-form" onSubmit={(event) => submit(event, "player", "/admin/players", playerIdentifier)}>
               <label>Minecraft username<input name="username" required minLength={3} maxLength={16} pattern="[A-Za-z0-9_]+" placeholder="PlayerName" /></label>
               <button type="submit" className="button-primary" disabled={busyAction === "player"}>
