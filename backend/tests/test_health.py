@@ -53,39 +53,33 @@ def test_postgres_urls_use_psycopg_driver() -> None:
     )
 
 
-def test_health_allows_configured_website_origin(monkeypatch) -> None:
-    monkeypatch.setattr(main, "initialize_database", lambda: None)
-    app = main.create_app(Settings(cors_origins="https://grindpvp-blsu.onrender.com"))
+@pytest.mark.parametrize("path", ["/catalog", "/leaderboard/overall", "/health"])
+def test_official_website_get_responses_include_cors_headers(client, monkeypatch, path: str) -> None:
+    monkeypatch.setattr(main, "check_database_connection", lambda: None)
 
-    response = TestClient(app).options(
-        "/admin/login",
-        headers={
-            "Origin": "https://grindpvp-blsu.onrender.com",
-            "Access-Control-Request-Method": "POST",
-            "Access-Control-Request-Headers": "content-type,authorization",
-        },
-    )
+    response = client.get(path, headers={"Origin": "https://grindpvp-blsu.onrender.com"})
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "https://grindpvp-blsu.onrender.com"
-    assert "POST" in response.headers["access-control-allow-methods"]
-    assert "authorization" in response.headers["access-control-allow-headers"].lower()
+    assert response.headers["access-control-allow-credentials"] == "true"
 
 
-def test_health_allows_official_website_origin_without_environment_configuration(monkeypatch) -> None:
-    monkeypatch.setattr(main, "initialize_database", lambda: None)
-    app = main.create_app(Settings())
-
-    response = TestClient(app).options(
-        "/leaderboard/overall",
+@pytest.mark.parametrize("path", ["/catalog", "/leaderboard/overall", "/health"])
+def test_official_website_preflight_succeeds_for_api_gets(client, path: str) -> None:
+    response = client.options(
+        path,
         headers={
             "Origin": "https://grindpvp-blsu.onrender.com",
             "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "content-type",
         },
     )
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "https://grindpvp-blsu.onrender.com"
+    assert response.headers["access-control-allow-credentials"] == "true"
+    assert "GET" in response.headers["access-control-allow-methods"]
+    assert "content-type" in response.headers["access-control-allow-headers"].lower()
 
 
 def test_production_database_must_be_postgresql(monkeypatch) -> None:

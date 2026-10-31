@@ -4,7 +4,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.config import Settings, get_settings
 from app.database import check_database_connection, engine, initialize_database
 from app.routes import admin_router, public_router
 
@@ -15,7 +14,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app() -> FastAPI:
     app = FastAPI(
         title="GrindPvP API",
         version="0.2.0",
@@ -24,10 +23,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=(settings or get_settings()).cors_origin_list,
-        allow_credentials=False,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Accept", "Authorization", "Content-Type"],
+        allow_origins=["https://grindpvp-blsu.onrender.com"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     app.include_router(public_router)
     app.include_router(admin_router)
