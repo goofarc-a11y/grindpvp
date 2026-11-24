@@ -5,10 +5,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.grindpvp.network.GrindPvPApi;
 import dev.grindpvp.settings.GrindPvPSettings;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.contents.PlainTextContents.LiteralContents;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -53,8 +56,94 @@ public final class PlayerPresentationCache {
     }
 
     public static Component decorateChatName(Component sender) {
-        PlayerPresentation presentation = find(null, sender.getString());
-        return presentation == null ? null : presentation.chatName(sender);
+        ChatSenderMatch match = findChatSender(sender.getString());
+        return match == null ? null : match.presentation().chatName(latency(match.presentation()));
+    }
+
+    public static Component decorateLiteralChatMessage(Component message) {
+        if (!(message.getContents() instanceof LiteralContents) || !message.getSiblings().isEmpty()) {
+            return null;
+        }
+        String text = message.getString();
+        int delimiter = text.indexOf(':');
+        while (delimiter >= 0 && delimiter <= 100) {
+            ChatSenderMatch match = findChatSender(text.substring(0, delimiter));
+            if (match != null) {
+                return decorateLiteralChatMessage(message, text, match);
+            }
+            delimiter = text.indexOf(':', delimiter + 1);
+        }
+        int closingAngle = text.indexOf('>');
+        if (closingAngle > 0 && closingAngle <= 100) {
+            ChatSenderMatch match = findChatSender(text.substring(0, closingAngle));
+            if (match != null) {
+                return decorateLiteralChatMessage(message, text, match);
+            }
+        }
+        return null;
+    }
+
+    private static Component decorateLiteralChatMessage(
+            Component message,
+            String text,
+            ChatSenderMatch match
+    ) {
+        MutableComponent decorated = Component.literal(text.substring(0, match.start()))
+                .withStyle(message.getStyle());
+        decorated.append(match.presentation().chatName(latency(match.presentation())));
+        decorated.append(Component.literal(text.substring(match.end())).withStyle(message.getStyle()));
+        return decorated;
+    }
+
+    private static ChatSenderMatch findChatSender(String displayedName) {
+        String trimmed = displayedName.trim();
+        PlayerPresentation exact = find(null, trimmed);
+        if (exact != null) {
+            int start = displayedName.indexOf(trimmed);
+            return new ChatSenderMatch(exact, start, start + exact.username().length());
+        }
+
+        String normalized = displayedName.toLowerCase(Locale.ROOT);
+        ChatSenderMatch bestMatch = null;
+        for (PlayerPresentation presentation : PRESENTATIONS.values()) {
+            String username = presentation.username().toLowerCase(Locale.ROOT);
+            int start = lastUsernameToken(normalized, username);
+            if (start > (bestMatch == null ? -1 : bestMatch.start())) {
+                bestMatch = new ChatSenderMatch(presentation, start, start + username.length());
+            }
+        }
+        return bestMatch;
+    }
+
+    private static int lastUsernameToken(String text, String username) {
+        int match = -1;
+        int start = text.indexOf(username);
+        while (start >= 0) {
+            int end = start + username.length();
+            if ((start == 0 || !isUsernameCharacter(text.charAt(start - 1)))
+                    && (end == text.length() || !isUsernameCharacter(text.charAt(end)))) {
+                match = start;
+            }
+            start = text.indexOf(username, start + 1);
+        }
+        return match;
+    }
+
+    private static boolean isUsernameCharacter(char character) {
+        return Character.isLetterOrDigit(character) || character == '_';
+    }
+
+    private static int latency(PlayerPresentation presentation) {
+        var connection = Minecraft.getInstance().getConnection();
+        if (connection == null) {
+            return -1;
+        }
+        for (PlayerInfo playerInfo : connection.getOnlinePlayers()) {
+            if (playerInfo.getProfile().name().equalsIgnoreCase(presentation.username())) {
+                return playerInfo.getLatency();
+            }
+        }
+        return -1;
     }
 
     private static void fetchPage(int page, Map<String, PlayerPresentation> accumulated) {
@@ -128,6 +217,14 @@ public final class PlayerPresentationCache {
         }
 
         private Component nameTag(int latency) {
+            return formattedName(latency, true);
+        }
+
+        private Component chatName(int latency) {
+            return formattedName(latency, false);
+        }
+
+        private Component formattedName(int latency, boolean roleAboveDetails) {
             MutableComponent details = Component.empty();
             GrindPvPSettings settings = GrindPvPSettings.get();
             if (settings.nametagRankingEnabled && overallPosition > 0) {
@@ -152,7 +249,7 @@ public final class PlayerPresentationCache {
             }
             return Component.literal(roleName)
                     .withStyle(Style.EMPTY.withColor(color(roleColor, 0xFFFFFF)).withBold(true))
-                    .append(Component.literal("\n"))
+                    .append(Component.literal(roleAboveDetails ? "\n" : " "))
                     .append(details);
         }
 
@@ -209,19 +306,9 @@ public final class PlayerPresentationCache {
             return result;
         }
 
-        private Component chatName(Component sender) {
-            MutableComponent result = Component.empty();
-            if (!roleName.isBlank()) {
-                result.append(Component.literal(roleName)
-                        .withStyle(Style.EMPTY.withColor(color(roleColor, 0xFFFFFF))));
-                result.append(Component.literal(" "));
-            }
-            result.append(Component.literal("[" + overallTier + "]")
-                    .withStyle(Style.EMPTY.withColor(color(overallTierColor, 0x808080))));
-            result.append(Component.literal(" "));
-            result.append(sender.copy().withStyle(style -> style.withColor(color(titleColor, 0xFFFFFF))));
-            return result;
-        }
+    }
+
+    private record ChatSenderMatch(PlayerPresentation presentation, int start, int end) {
     }
 
     private static String stringValue(JsonObject object, String key) {

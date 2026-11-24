@@ -21,11 +21,18 @@ public abstract class ChatComponentMixin {
     )
     private Component grindpvp$decorateChatSender(Component message) {
         if (!(message.getContents() instanceof TranslatableContents contents)) {
-            return message;
+            Component decorated = PlayerPresentationCache.decorateLiteralChatMessage(message);
+            return decorated == null ? message : decorated;
         }
         TranslatableContentsAccessor accessor = (TranslatableContentsAccessor) (Object) contents;
         Object[] originalArgs = accessor.grindpvp$getArgs();
-        if (originalArgs.length == 0 || !(originalArgs[0] instanceof Component sender)) {
+        if (originalArgs.length == 0) {
+            return message;
+        }
+        Component sender = originalArgs[0] instanceof Component component
+                ? component
+                : originalArgs[0] instanceof String name ? Component.literal(name) : null;
+        if (sender == null) {
             return message;
         }
         Component decoratedSender = PlayerPresentationCache.decorateChatName(sender);
