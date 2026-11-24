@@ -61,15 +61,12 @@ public final class PlayerPresentationCache {
     }
 
     public static Component decorateLiteralChatMessage(Component message) {
-        if (!(message.getContents() instanceof LiteralContents) || !message.getSiblings().isEmpty()) {
-            return null;
-        }
         String text = message.getString();
         int delimiter = text.indexOf(':');
         while (delimiter >= 0 && delimiter <= 100) {
             ChatSenderMatch match = findChatSender(text.substring(0, delimiter));
             if (match != null) {
-                return decorateLiteralChatMessage(message, text, match);
+                return replaceLiteralChatName(message, match, 0);
             }
             delimiter = text.indexOf(':', delimiter + 1);
         }
@@ -77,22 +74,51 @@ public final class PlayerPresentationCache {
         if (closingAngle > 0 && closingAngle <= 100) {
             ChatSenderMatch match = findChatSender(text.substring(0, closingAngle));
             if (match != null) {
-                return decorateLiteralChatMessage(message, text, match);
+                return replaceLiteralChatName(message, match, 0);
             }
         }
         return null;
     }
 
-    private static Component decorateLiteralChatMessage(
-            Component message,
-            String text,
-            ChatSenderMatch match
-    ) {
-        MutableComponent decorated = Component.literal(text.substring(0, match.start()))
-                .withStyle(message.getStyle());
-        decorated.append(match.presentation().chatName(latency(match.presentation())));
-        decorated.append(Component.literal(text.substring(match.end())).withStyle(message.getStyle()));
-        return decorated;
+    private static Component replaceLiteralChatName(Component component, ChatSenderMatch match, int offset) {
+        String text = component.getString();
+        int siblingLength = component.getSiblings().stream()
+                .mapToInt(sibling -> sibling.getString().length())
+                .sum();
+        int ownLength = text.length() - siblingLength;
+        int ownEnd = offset + ownLength;
+
+        if (match.start() >= offset && match.end() <= ownEnd) {
+            if (!(component.getContents() instanceof LiteralContents literal)) {
+                return null;
+            }
+            String ownText = literal.text();
+            int localStart = match.start() - offset;
+            int localEnd = match.end() - offset;
+            MutableComponent replacement = Component.literal(ownText.substring(0, localStart))
+                    .withStyle(component.getStyle());
+            replacement.append(match.presentation().chatName(latency(match.presentation())));
+            replacement.append(Component.literal(ownText.substring(localEnd)).withStyle(component.getStyle()));
+            component.getSiblings().forEach(replacement::append);
+            return replacement;
+        }
+
+        int siblingOffset = ownEnd;
+        for (int i = 0; i < component.getSiblings().size(); i++) {
+            Component sibling = component.getSiblings().get(i);
+            int siblingEnd = siblingOffset + sibling.getString().length();
+            if (match.start() >= siblingOffset && match.end() <= siblingEnd) {
+                Component replacedSibling = replaceLiteralChatName(sibling, match, siblingOffset);
+                if (replacedSibling == null) {
+                    return null;
+                }
+                MutableComponent copy = component.copy();
+                copy.getSiblings().set(i, replacedSibling);
+                return copy;
+            }
+            siblingOffset = siblingEnd;
+        }
+        return null;
     }
 
     private static ChatSenderMatch findChatSender(String displayedName) {
