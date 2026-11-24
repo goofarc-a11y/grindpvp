@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "grindpvp",
+  "version": "${version}",
+  "name": "GrindPvP",
+  "description": "A ranked PvP client mod with a separate backend service.",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.grindpvp.GrindPvPClient"
+    ]
+  },
+  "mixins": [
+    "grindpvp.client.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

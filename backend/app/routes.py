@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import delete, func, select, update
+from sqlalchemy import case, delete, func, select, update
 from sqlalchemy.orm import Session, selectinload
 
 from app.config import get_settings
@@ -117,19 +117,24 @@ def list_player_presentations(
     page_size: int = Query(default=1000, ge=1, le=5000),
     session: Session = Depends(get_db),
 ) -> PlayerPresentationPage:
-    players = session.scalars(
-        select(Player)
-        .options(selectinload(Player.kits))
+    points_per_kit = case(*[(PlayerKit.tier == tier, value) for tier, value in TIER_POINTS.items()], else_=0)
+    total_points = func.coalesce(func.sum(points_per_kit), 0)
+    overall_position = func.row_number().over(
+        order_by=(total_points.desc(), Player.username.collate("NOCASE"))
+    )
+    player_rows = session.execute(
+        select(Player, total_points, overall_position)
+        .outerjoin(PlayerKit, PlayerKit.player_uuid == Player.uuid)
         .where(Player.verified.is_(True))
-        .order_by(Player.username)
+        .group_by(Player.uuid)
+        .order_by(Player.username.collate("NOCASE"))
         .offset((page - 1) * page_size)
         .limit(page_size)
     ).all()
     tier_colors = {tier.name: tier.color for tier in TIERS}
     items = []
-    for player in players:
-        total_points = sum(TIER_POINTS[record.tier] for record in player.kits)
-        tier, _ = overall_tier(total_points)
+    for player, point_total, position in player_rows:
+        tier, _ = overall_tier(int(point_total))
         items.append(
             PlayerPresentation(
                 uuid=player.uuid,
@@ -140,6 +145,7 @@ def list_player_presentations(
                 title_color=TITLE_COLORS.get(player.title_name),
                 overall_tier=tier,
                 overall_tier_color=tier_colors[tier],
+                overall_position=position,
             )
         )
     return PlayerPresentationPage(items=items)

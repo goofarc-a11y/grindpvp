@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.grindpvp.mixin",
+  "refmap": "client-client-grindpvp.refmap.json",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AvatarRendererMixin",
+    "PlayerTabOverlayMixin",
+    "ChatComponentMixin",
+    "MinecraftFpsMixin",
+    "TranslatableContentsAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

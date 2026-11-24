@@ -45,6 +45,9 @@ ROLE_COLORS = {
     "Admin": "#FF7A24",
     "Mod": "#AAAAAA",
     "Helper": "#55FF55",
+    "Developer": "#5555FF",
+    "Manager": "#FF7A24",
+    "Moderator": "#55FFFF",
 }
 TITLE_COLORS = {
     "Member": "#9e99da",

@@ -235,6 +235,7 @@ class PlayerPresentation(BaseModel):
     title_color: str | None
     overall_tier: str
     overall_tier_color: str
+    overall_position: int
 
 
 class PlayerPresentationPage(BaseModel):

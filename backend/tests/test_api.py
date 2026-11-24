@@ -200,6 +200,17 @@ def test_admin_roles_titles_and_audit_log(client) -> None:
     role = client.post("/admin/roles", headers=headers, json={"uuid": player, "role": "Admin"})
     assert role.status_code == 200
     assert role.json()["role_name"] == "Admin"
+    developer_role = client.post(
+        "/admin/roles",
+        headers=headers,
+        json={"uuid": player, "role": "Developer"},
+    )
+    assert developer_role.status_code == 200
+    assert developer_role.json()["role_name"] == "Developer"
+    catalog_roles = {role["name"]: role["color"] for role in client.get("/catalog").json()["roles"]}
+    assert catalog_roles["Developer"] == "#5555FF"
+    presentation = client.get("/players/presentation").json()["items"]
+    assert next(item for item in presentation if item["uuid"] == player)["role_color"] == "#5555FF"
     logs = client.get("/admin/logs", headers=headers)
     assert logs.status_code == 200
     assert logs.json()["total"] >= 3
@@ -324,16 +335,62 @@ def test_admin_can_register_and_manage_player_by_username(client, monkeypatch) -
     assert item["role_color"] == "#FF7A24"
     assert item["title_color"] == "#f1c40f"
     assert "overall_tier_color" in item
+    assert item["overall_position"] == 1
+
+
+def test_presentation_positions_and_new_role_colors_follow_overall_leaderboard(client) -> None:
+    first = register(client, "OverallLeader")
+    second = register(client, "OverallRunner")
+    token = login(client)
+    for player_uuid in (first, second):
+        response = client.post(
+            "/admin/verify",
+            headers=admin_headers(token),
+            json={"uuid": player_uuid, "verified": True},
+        )
+        assert response.status_code == 200
+    set_tier(client, token, first, "sword", "HT1")
+    set_tier(client, token, second, "sword", "LT5")
+    for player_uuid, role in ((first, "Manager"), (second, "Moderator")):
+        response = client.post(
+            "/admin/roles",
+            headers=admin_headers(token),
+            json={"uuid": player_uuid, "role": role},
+        )
+        assert response.status_code == 200
+
+    items = {item["uuid"]: item for item in client.get("/players/presentation").json()["items"]}
+    assert items[first]["overall_position"] == 1
+    assert items[second]["overall_position"] == 2
+    assert items[first]["role_color"] == "#FF7A24"
+    assert items[second]["role_color"] == "#55FFFF"
 
 
 def test_admin_match_can_use_playernames(client) -> None:
     winner = register(client, "NameWinner")
     loser = register(client, "NameLoser")
+    token = login(client)
+    headers = admin_headers(token)
+    for username in ("NameWinner", "NameLoser"):
+        verified = client.post(
+            "/admin/verify",
+            headers=headers,
+            json={"username": username, "verified": True},
+        )
+        assert verified.status_code == 200
+    for username, tier in (("NameWinner", "LT3"), ("NameLoser", "HT3")):
+        ranked = client.post(
+            "/admin/tiers",
+            headers=headers,
+            json={"username": username, "kit": "sword", "tier": tier},
+        )
+        assert ranked.status_code == 200
+
     response = client.post(
         "/admin/matches",
-        headers=admin_headers(login(client)),
+        headers=headers,
         json={
-            "idempotency_key": "names-only-match",
+            "idempotency_key": "admin:names-only-match",
             "kit": "sword",
             "winner_username": "namewinner",
             "loser_username": "NameLoser",
@@ -342,10 +399,35 @@ def test_admin_match_can_use_playernames(client) -> None:
     assert response.status_code == 200, response.text
     assert response.json()["winner_uuid"] == winner
     assert response.json()["loser_uuid"] == loser
-    assert client.get(
-        "/admin/matches?username=NameWinner",
-        headers=admin_headers(login(client)),
-    ).json()["total"] == 1
+
+    winner_profile = client.get(f"/profiles/{winner}").json()
+    loser_profile = client.get(f"/profiles/{loser}").json()
+    winner_sword = next(kit for kit in winner_profile["kits"] if kit["kit"] == "sword")
+    loser_sword = next(kit for kit in loser_profile["kits"] if kit["kit"] == "sword")
+    assert winner_sword == {
+        "kit": "sword",
+        "tier": "HT3",
+        "points": 10,
+        "wins": 1,
+        "losses": 0,
+        "matches": 1,
+        "winrate": 100.0,
+    }
+    assert loser_sword["wins"] == 0
+    assert loser_sword["losses"] == loser_sword["matches"] == 1
+
+    kit_board = client.get("/leaderboard/sword").json()
+    winner_entry = next(item for item in kit_board["items"] if item["uuid"] == winner)
+    assert winner_entry["points"] == winner_sword["points"]
+    assert winner_entry["wins"] == winner_sword["wins"]
+    overall_board = client.get("/leaderboard/overall").json()
+    winner_overall = next(item for item in overall_board["items"] if item["uuid"] == winner)
+    assert winner_overall["average_points"] == winner_profile["overall_average_points"]
+    assert winner_overall["tier"] == winner_profile["overall_tier"] == "LT5"
+
+    history = client.get(f"/matches/{winner}").json()
+    assert history["total"] == 1
+    assert history["items"][0]["winner_uuid"] == winner
 
 
 def test_minecraft_profile_lookup_reports_missing_names(monkeypatch) -> None:
