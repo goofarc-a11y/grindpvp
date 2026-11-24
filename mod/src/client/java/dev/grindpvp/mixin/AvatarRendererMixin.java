@@ -1,10 +1,13 @@
 package dev.grindpvp.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.grindpvp.presentation.PlayerPresentationCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Avatar;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,6 +22,31 @@ public abstract class AvatarRendererMixin {
             at = @At("TAIL")
     )
     private void grindpvp$decorateNameTag(Avatar avatar, AvatarRenderState state, float partialTick, CallbackInfo callback) {
+        grindpvp$applyNameTag(avatar, state);
+    }
+
+    @Inject(
+            method = "submitNameTag(Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/state/CameraRenderState;)V",
+            at = @At("HEAD")
+    )
+    private void grindpvp$forceNameTagAtRender(
+            AvatarRenderState state,
+            PoseStack poseStack,
+            SubmitNodeCollector collector,
+            CameraRenderState cameraState,
+            CallbackInfo callback
+    ) {
+        var level = Minecraft.getInstance().level;
+        if (level == null) {
+            return;
+        }
+        var entity = level.getEntity(state.id);
+        if (entity instanceof Avatar avatar) {
+            grindpvp$applyNameTag(avatar, state);
+        }
+    }
+
+    private void grindpvp$applyNameTag(Avatar avatar, AvatarRenderState state) {
         String uuid = avatar.getUUID().toString();
         String username = avatar.getName().getString();
         int latency = -1;
