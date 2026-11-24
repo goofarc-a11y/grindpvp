@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Avatar;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,8 +30,6 @@ public abstract class AvatarRendererMixin {
             }
         }
         var decorated = PlayerPresentationCache.decorateNameTag(uuid, username, latency);
-        if (decorated != null) {
-            state.nameTag = decorated;
-        }
+        state.nameTag = decorated != null ? decorated : Component.literal(username);
     }
 }

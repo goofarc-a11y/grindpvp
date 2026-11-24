@@ -128,31 +128,32 @@ public final class PlayerPresentationCache {
         }
 
         private Component nameTag(int latency) {
-            MutableComponent result = Component.empty();
+            MutableComponent details = Component.empty();
             GrindPvPSettings settings = GrindPvPSettings.get();
-            if (settings.nametagRoleEnabled && !roleName.isBlank()) {
-                result.append(Component.literal(roleName)
-                        .withStyle(Style.EMPTY.withColor(color(roleColor, 0xFFFFFF)).withBold(true)));
-                result.append(Component.literal(" "));
-            }
             if (settings.nametagRankingEnabled && overallPosition > 0) {
-                result.append(Component.literal("[" + overallPosition + "]")
+                details.append(Component.literal("[" + overallPosition + "]")
                         .withStyle(Style.EMPTY.withColor(positionColor(overallPosition))));
-                result.append(Component.literal(" "));
+                details.append(Component.literal(" "));
             }
             if (settings.nametagTierEnabled) {
-                result.append(Component.literal("[" + overallTier + "]")
+                details.append(Component.literal("[" + overallTier + "]")
                         .withStyle(Style.EMPTY.withColor(color(overallTierColor, 0x808080))));
-                result.append(Component.literal(" "));
+                details.append(Component.literal(" "));
             }
-            result.append(Component.literal(username)
+            details.append(Component.literal(username)
                     .withStyle(Style.EMPTY.withColor(color(titleColor, 0xFFFFFF))));
             if (settings.nametagPingEnabled && latency >= 0) {
-                result.append(Component.literal(" "));
-                result.append(Component.literal(latency + "ms")
+                details.append(Component.literal(" "));
+                details.append(Component.literal(latency + "ms")
                         .withStyle(Style.EMPTY.withColor(pingColor(latency))));
             }
-            return result;
+            if (!settings.nametagRoleEnabled || roleName.isBlank()) {
+                return details;
+            }
+            return Component.literal(roleName)
+                    .withStyle(Style.EMPTY.withColor(color(roleColor, 0xFFFFFF)).withBold(true))
+                    .append(Component.literal("\n"))
+                    .append(details);
         }
 
         private static int positionColor(int position) {
