@@ -30,7 +30,8 @@ public abstract class AvatarRendererMixin {
             }
         }
         var decorated = PlayerPresentationCache.decorateNameTag(uuid, username, latency);
-        state.scoreText = null;
-        state.nameTag = decorated != null ? decorated : Component.literal(username);
+        var role = PlayerPresentationCache.decorateRoleNameTag(uuid, username);
+        state.scoreText = role != null ? decorated : null;
+        state.nameTag = role != null ? role : decorated != null ? decorated : Component.literal(username);
     }
 }

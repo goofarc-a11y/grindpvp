@@ -42,12 +42,12 @@ public final class PlayerPresentationCache {
 
     public static Component decorateNameTag(String uuid, String username, int latency) {
         PlayerPresentation presentation = find(uuid, username);
-        return presentation == null ? null : presentation.nameTag(latency);
+        return presentation == null ? null : presentation.nameTagDetails(latency);
     }
 
-    public static Component decorateRoleNameTag(String uuid, String username, Component existingScore) {
+    public static Component decorateRoleNameTag(String uuid, String username) {
         PlayerPresentation presentation = find(uuid, username);
-        return presentation == null ? null : presentation.roleNameTag(existingScore);
+        return presentation == null ? null : presentation.roleNameTag();
     }
 
     public static Component decorateTabName(String uuid, String username) {
@@ -242,15 +242,20 @@ public final class PlayerPresentationCache {
             );
         }
 
-        private Component nameTag(int latency) {
-            return formattedName(latency, true);
+        private Component nameTagDetails(int latency) {
+            return details(latency);
         }
 
         private Component chatName(int latency) {
-            return formattedName(latency, false);
+            MutableComponent result = Component.empty();
+            if (GrindPvPSettings.get().nametagRoleEnabled && !roleName.isBlank()) {
+                result.append(roleComponent());
+                result.append(Component.literal(" "));
+            }
+            return result.append(details(latency));
         }
 
-        private Component formattedName(int latency, boolean roleAboveDetails) {
+        private MutableComponent details(int latency) {
             MutableComponent details = Component.empty();
             GrindPvPSettings settings = GrindPvPSettings.get();
             if (settings.nametagRankingEnabled && overallPosition > 0) {
@@ -258,7 +263,9 @@ public final class PlayerPresentationCache {
                         .withStyle(Style.EMPTY.withColor(positionColor(overallPosition))));
                 details.append(Component.literal(" "));
             }
-            if (settings.nametagTierEnabled) {
+            if (settings.nametagTierEnabled
+                    && !overallTier.isBlank()
+                    && !overallTier.trim().equalsIgnoreCase("unranked")) {
                 details.append(Component.literal("[" + overallTier + "]")
                         .withStyle(Style.EMPTY.withColor(color(overallTierColor, 0x808080))));
                 details.append(Component.literal(" "));
@@ -270,13 +277,18 @@ public final class PlayerPresentationCache {
                 details.append(Component.literal(latency + "ms")
                         .withStyle(Style.EMPTY.withColor(pingColor(latency))));
             }
-            if (!settings.nametagRoleEnabled || roleName.isBlank()) {
-                return details;
-            }
+            return details;
+        }
+
+        private Component roleNameTag() {
+            return !GrindPvPSettings.get().nametagRoleEnabled || roleName.isBlank()
+                    ? null
+                    : roleComponent();
+        }
+
+        private Component roleComponent() {
             return Component.literal(roleName)
-                    .withStyle(Style.EMPTY.withColor(color(roleColor, 0xFFFFFF)).withBold(true))
-                    .append(Component.literal(roleAboveDetails ? "\n" : " "))
-                    .append(details);
+                    .withStyle(Style.EMPTY.withColor(color(roleColor, 0xFFFFFF)).withBold(true));
         }
 
         private static int positionColor(int position) {
@@ -302,19 +314,6 @@ public final class PlayerPresentationCache {
                 return 0xFF8C00;
             }
             return 0xFF0000;
-        }
-
-        private Component roleNameTag(Component existingScore) {
-            if (roleName.isBlank()) {
-                return existingScore;
-            }
-            MutableComponent result = Component.literal(roleName)
-                    .withStyle(Style.EMPTY.withColor(color(roleColor, 0xFFFFFF)).withBold(true));
-            if (existingScore != null) {
-                result.append(Component.literal(" "));
-                result.append(existingScore);
-            }
-            return result;
         }
 
         private Component tabName() {
