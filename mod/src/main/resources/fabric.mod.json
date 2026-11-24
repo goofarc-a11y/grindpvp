@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "id": "grindpvp",
   "version": "${version}",
+  "icon": "assets/grindpvp/icon.png",
   "name": "GrindPvP",
   "description": "A ranked PvP client mod with a separate backend service.",
   "environment": "client",
