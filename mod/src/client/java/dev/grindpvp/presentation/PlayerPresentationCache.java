@@ -263,9 +263,7 @@ public final class PlayerPresentationCache {
                         .withStyle(Style.EMPTY.withColor(positionColor(overallPosition))));
                 details.append(Component.literal(" "));
             }
-            if (settings.nametagTierEnabled
-                    && !overallTier.isBlank()
-                    && !overallTier.trim().equalsIgnoreCase("unranked")) {
+            if (settings.nametagTierEnabled) {
                 details.append(Component.literal("[" + overallTier + "]")
                         .withStyle(Style.EMPTY.withColor(color(overallTierColor, 0x808080))));
                 details.append(Component.literal(" "));
