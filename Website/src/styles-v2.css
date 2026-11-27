@@ -2285,6 +2285,23 @@ body,
 
 .quick-profile-result > svg { color: #aeb9c7; }
 
+.quick-profile-search .quick-profile-result {
+  width: 100%;
+  height: auto;
+  flex: none;
+  justify-items: stretch;
+  padding: 7px 9px;
+  border-radius: 9px;
+  background: transparent;
+  color: #e6ebf2;
+  text-align: left;
+}
+
+.quick-profile-search .quick-profile-result:hover:not(:disabled),
+.quick-profile-search .quick-profile-result:focus-visible {
+  background: #1b2635;
+}
+
 .kit-sidebar.connected + .main-content .leaderboard-toolbar {
   min-height: 54px;
   padding-block: 9px;
