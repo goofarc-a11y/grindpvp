@@ -1185,3 +1185,87 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
   .tier-badge { font-size: 10px; }
   .profile-preview-skin img { width: 86px; height: 172px; }
 }
+
+.topbar-right { gap: 12px; }
+
+.quick-profile-search {
+  display: flex;
+  width: 190px;
+  height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 10px;
+  border: 1px solid #2a3849;
+  border-radius: 6px;
+  background: #111b28;
+  color: #8290a1;
+}
+
+.quick-profile-search:focus-within { border-color: #687b92; }
+.quick-profile-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #e6ebf2;
+  font-size: 10px;
+}
+.quick-profile-search input::placeholder { color: #758397; }
+.quick-profile-search button {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #aab7c6;
+  cursor: pointer;
+}
+.quick-profile-search button:hover:not(:disabled) {
+  background: #253447;
+  color: #f0c65e;
+}
+
+.leaderboard-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 9px;
+}
+.leaderboard-toolbar .leaderboard-controls { gap: 9px; }
+.leaderboard-toolbar .leaderboard-overall-switch { min-height: 31px; }
+.leaderboard-toolbar .table-kit-label { min-height: 31px; }
+
+.player-table.is-overall { min-width: 1320px; }
+.player-table.is-overall th:nth-child(4),
+.player-table.is-overall td:nth-child(4) { min-width: 650px; }
+.kit-tier-strip { gap: 6px; }
+.kit-tier-item { width: 39px; flex-basis: 39px; }
+.kit-tier-ring { width: 34px; height: 34px; }
+.kit-tier-ring .kit-asset-icon { width: 18px; height: 18px; }
+.verified-mark { margin-left: 6px; }
+.rank-skin img { right: 18px; bottom: -84px; }
+
+@media (max-width: 760px) {
+  .quick-profile-search { width: 150px; }
+  .player-table.is-overall { min-width: 1280px; }
+  .player-table.is-overall td:nth-child(4) { min-width: 630px; }
+  .rank-skin img { bottom: -82px; }
+}
+
+@media (max-width: 620px) {
+  .topbar-right { gap: 6px; }
+  .quick-profile-search {
+    width: 106px;
+    gap: 4px;
+    padding-left: 7px;
+  }
+  .quick-profile-search input { font-size: 9px; }
+  .quick-profile-search button { width: 20px; flex-basis: 20px; }
+  .player-table.is-overall { min-width: 1240px; }
+  .player-table.is-overall td:nth-child(4) { min-width: 610px; }
+  .rank-skin img { right: 13px; bottom: -76px; }
+}

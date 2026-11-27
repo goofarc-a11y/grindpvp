@@ -327,9 +327,9 @@ function App() {
     };
   }, [page, adminToken, refreshVersion]);
 
-  const performSearch = async (event?: FormEvent) => {
+  const performSearch = async (event?: FormEvent, searchTerm = searchValue) => {
     event?.preventDefault();
-    const term = searchValue.trim();
+    const term = searchTerm.trim();
     if (term.length < 1 || term.length > 16) {
       setSearchError("Enter a Minecraft username (up to 16 characters).");
       setSearchResults([]);
@@ -347,6 +347,19 @@ function App() {
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const handleQuickSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const term = searchValue.trim();
+    setProfileUuid("");
+    setProfileDetailView(false);
+    setProfileModalOpen(false);
+    setSearchResults([]);
+    setSearchError("");
+    setStatusMessage("");
+    changePage("profiles");
+    void performSearch(undefined, term);
   };
 
   const openProfile = (uuid: string, origin: "profiles" | "my-profile" = "profiles") => {
@@ -481,6 +494,14 @@ function App() {
           ))}
         </nav>
         <div className="topbar-right">
+          <form className="quick-profile-search" role="search" onSubmit={handleQuickSearch}>
+            <Search size={15} aria-hidden="true" />
+            <input aria-label="Search profiles" value={searchValue} maxLength={16}
+              placeholder="Find profile..." onChange={(event) => setSearchValue(event.target.value)} />
+            <button type="submit" aria-label="Search profiles" title="Search profiles" disabled={searchLoading}>
+              {searchLoading ? <LoaderCircle size={14} className="spin" /> : <ArrowRight size={14} />}
+            </button>
+          </form>
           <div className={`api-status ${apiOnline ? "online" : apiOnline === false ? "offline" : ""}`}
             title={databaseEngine ? `Connected database: ${databaseEngine}` : undefined}>
             <span className="status-dot" />{apiOnline ? databaseEngine && databaseEngine !== "postgresql"
@@ -610,34 +631,19 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
   play: (kind: "click" | "hover") => void;
 }) {
   const rows = data?.items || [];
-  const top = rows.filter((entry) => entry.rank <= 3);
   const pages = Math.max(1, Math.ceil((data?.total || 0) / PAGE_SIZE));
   return (
     <>
       {error && <Notice message={error} />}
-      <section className="podium-section">
-        <div className="section-title-row"><div><h2>Top competitors</h2><p>Leading the {displayKit(kit)} board</p></div>
-          <span className="season-label"><Trophy size={14} /> TOP 3</span></div>
-        {loading ? <div className="podium-grid">{[1, 2, 3].map((n) => <Skeleton key={n} className="podium-skeleton" />)}</div>
-          : <div className="podium-grid">
-            {[2, 1, 3].map((rank) => {
-              const entry = top.find((item) => item.rank === rank);
-              return <PodiumCard key={rank} entry={entry} rank={rank}
-                color={entry ? color(entry.tier) : "#86888d"} onClick={() => entry && onProfile(entry.uuid)} />;
-            })}
-          </div>}
-      </section>
-
-      <section className="panel leaderboard-panel">
-        <div className="panel-heading">
-          <div><h2>All competitors</h2><p>{data?.total ?? "—"} verified players on this board</p></div>
-          <div className="leaderboard-controls">
-            {kit !== "overall" && <button type="button" className="button-secondary leaderboard-overall-switch"
-              onClick={onSwitchOverall}><Trophy size={14} /> Overall leaderboard</button>}
-            <div className="table-kit-label"><span className="table-kit-icon"><KitIcon kit={kit} /></span>
-              {displayKit(kit)}<ChevronDown size={14} /></div>
-          </div>
+      <div className="leaderboard-toolbar">
+        <div className="leaderboard-controls">
+          {kit !== "overall" && <button type="button" className="button-secondary leaderboard-overall-switch"
+            onClick={onSwitchOverall}><Trophy size={14} /> Overall leaderboard</button>}
+          <div className="table-kit-label"><span className="table-kit-icon"><KitIcon kit={kit} /></span>
+            {displayKit(kit)}<ChevronDown size={14} /></div>
         </div>
+      </div>
+      <section className="panel leaderboard-panel">
         <div className="table-scroll">
           <table className={`player-table ${kit === "overall" ? "is-overall" : ""}`}>
             <thead><tr><th>RANK</th><th>PLAYER</th><th>TIER</th>
@@ -659,7 +665,8 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                           ? <span style={{ color: titleColor(entry.title_name, catalog) }}>{entry.title_name}</span>
                           : <span>GrindPvP player</span>}
                         {kit === "overall" && <span className="overall-inline-points">
-                          {" · "}{(entry.average_points ?? 0).toFixed(2)} points
+                          {" · "}{entry.points ?? Math.round((entry.average_points ?? 0) * ALL_KITS.length)} total pts
+                          {" · "}{(entry.average_points ?? 0).toFixed(2)} avg pts
                         </span>}
                       </small></span>
                       {entry.title_name && <BadgeCheck size={14} className="verified-mark" />}</div></td>
@@ -695,28 +702,6 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
         }} />
       </section>
     </>
-  );
-}
-
-function PodiumCard({ entry, rank, color, onClick }: {
-  entry?: LeaderboardEntry; rank: number; color: string; onClick: () => void;
-}) {
-  const order = rank === 1 ? "first" : rank === 2 ? "second" : "third";
-  return (
-    <button type="button" disabled={!entry} className={`podium-card ${order}`} onClick={onClick}>
-      <div className="podium-card-top">
-        <div className="podium-rank">{rank}.</div>
-        <span className="podium-arrow"><ArrowRight size={15} /></span>
-      </div>
-      {entry ? <>
-        <img className="podium-avatar" src={avatarUrl(entry.uuid)} alt="" />
-        <span className="podium-username">{entry.username}</span>
-        <span className="podium-tier" style={{ color, borderColor: `${color}50`, background: `${color}12` }}>{entry.tier}</span>
-        <span className="podium-points">{(entry.points ?? entry.average_points ?? 0).toFixed(entry.average_points !== undefined ? 2 : 0)}
-          <small>{entry.average_points !== undefined ? "avg pts" : "points"}</small></span>
-      </> : <span className="podium-empty">Waiting for a ranked player</span>}
-      <div className="podium-glow" />
-    </button>
   );
 }
 
