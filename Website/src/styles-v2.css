@@ -1286,6 +1286,12 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
 .rank-skin-2 { background: #879ea5; }
 .rank-skin-3 { background: #b56329; }
 
+.rank-skin .rank-value {
+  font-style: italic;
+  font-weight: 900;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.6);
+}
+
 .rank-skin .rank-value-two-digits {
   min-width: 45px;
   font-size: 19px;
