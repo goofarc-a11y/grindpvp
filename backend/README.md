@@ -62,6 +62,8 @@ but does not prove account ownership.
   role/tier colors
 - `GET /leaderboard/overall` (each entry includes all kit tiers),
   `GET /leaderboard/{kit}`
+- `GET /social/leaderboard-card.png` returns the current overall top three as a
+  shareable PNG preview
 - `GET /matches`, `GET /matches/{uuid}`
 - `POST /admin/login`, then pass the returned bearer token to admin endpoints
 - `POST /admin/logout`, `/players`, `/verify`, `/roles`, `/titles`, `/matches`,
