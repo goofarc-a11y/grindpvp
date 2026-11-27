@@ -111,7 +111,7 @@ const PAGE_SIZE = 25;
 const TOKEN_KEY = "grindpvp.admin.session";
 const MY_PROFILE_KEY = "grindpvp.my-profile.uuid";
 const SETTINGS_KEY = "grindpvp.website.settings";
-const DEFAULT_SETTINGS = { animations: true, sounds: true, hoverSounds: false, volume: 18 };
+const DEFAULT_SETTINGS = { animations: true, sounds: false, hoverSounds: false, volume: 18 };
 
 type Settings = typeof DEFAULT_SETTINGS;
 
@@ -119,7 +119,7 @@ function useLocalSettings(): [Settings, (next: Settings) => void] {
   const [settings, setSettings] = useState<Settings>(() => {
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
-      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved), sounds: false, hoverSounds: false } : DEFAULT_SETTINGS;
     } catch {
       return DEFAULT_SETTINGS;
     }
@@ -509,7 +509,7 @@ function App() {
               <LeaderboardView
                 catalog={catalog} kit={selectedKit} page={leaderboardPage} data={leaderboard}
                 loading={loadingLeaderboard} error={statusMessage} tierColor={(tier) => tierColor(tier, catalog?.tiers || [])}
-                onPage={setLeaderboardPage} onProfile={(uuid) => openProfile(uuid)} totalPlayers={leaderboard?.total || 0}
+                onPage={setLeaderboardPage} onProfile={(uuid) => openProfile(uuid)}
                 onSwitchOverall={() => {
                   setSelectedKit("overall");
                   setLeaderboardPage(1);
@@ -603,10 +603,10 @@ function PageHeading({ eyebrow, title, subtitle, right }: {
 }
 
 function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: color,
-  onPage, onProfile, onSwitchOverall, totalPlayers, play }: {
+  onPage, onProfile, onSwitchOverall, play }: {
   catalog: Catalog | null; kit: string; page: number; data: PageResult<LeaderboardEntry> | null;
   loading: boolean; error: string; tierColor: (tier: string) => string; onPage: (page: number) => void;
-  onProfile: (uuid: string) => void; onSwitchOverall: () => void; totalPlayers: number;
+  onProfile: (uuid: string) => void; onSwitchOverall: () => void;
   play: (kind: "click" | "hover") => void;
 }) {
   const rows = data?.items || [];
@@ -614,22 +614,6 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
   const pages = Math.max(1, Math.ceil((data?.total || 0) / PAGE_SIZE));
   return (
     <>
-      <PageHeading eyebrow="COMPETITIVE RANKINGS" title="Leaderboard"
-        subtitle="The players setting the pace across every ranked kit."
-        right={<span className="live-pill"><i /> Live database</span>} />
-      <section className="hero-strip">
-        <div className="hero-text">
-          <span className="hero-kicker">CURRENT VIEW</span>
-          <strong>{displayKit(kit)} <span>rankings</span></strong>
-          <small>Verified players · Updated from GrindPvP</small>
-        </div>
-        <div className="hero-stats">
-          <div><UsersRound size={17} /><span><b>{totalPlayers.toLocaleString()}</b><small>ranked players</small></span></div>
-          <div><Medal size={17} /><span><b>{kit === "overall" ? "14" : catalog?.tiers.length || "11"}</b><small>{kit === "overall" ? "ranked kits" : "rank tiers"}</small></span></div>
-        </div>
-        <div className="hero-decoration"><span /><span /><span /></div>
-      </section>
-
       {error && <Notice message={error} />}
       <section className="podium-section">
         <div className="section-title-row"><div><h2>Top competitors</h2><p>Leading the {displayKit(kit)} board</p></div>
@@ -656,7 +640,8 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
         </div>
         <div className="table-scroll">
           <table className={`player-table ${kit === "overall" ? "is-overall" : ""}`}>
-            <thead><tr><th>RANK</th><th>PLAYER</th><th>TIER</th><th>POINTS</th>
+            <thead><tr><th>RANK</th><th>PLAYER</th><th>TIER</th>
+              {kit !== "overall" && <th>POINTS</th>}
               {kit === "overall" ? <th>KIT TIERS</th> : <><th>W / L</th><th>WIN RATE</th></>}<th /></tr></thead>
             <tbody>
               {loading ? Array.from({ length: 7 }, (_, index) => <SkeletonRow key={index} overall={kit === "overall"} />)
@@ -673,11 +658,15 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                         {entry.title_name
                           ? <span style={{ color: titleColor(entry.title_name, catalog) }}>{entry.title_name}</span>
                           : <span>GrindPvP player</span>}
+                        {kit === "overall" && <span className="overall-inline-points">
+                          {" · "}{(entry.average_points ?? 0).toFixed(2)} points
+                        </span>}
                       </small></span>
                       {entry.title_name && <BadgeCheck size={14} className="verified-mark" />}</div></td>
                     <td><TierBadge name={entry.tier} color={color(entry.tier)} /></td>
-                    <td className="points-cell">{(entry.points ?? entry.average_points ?? 0).toFixed(entry.average_points !== undefined ? 2 : 0)}
+                    {kit !== "overall" && <td className="points-cell">{(entry.points ?? 0).toFixed(0)}
                       {entry.average_points !== undefined && <small> avg</small>}</td>
+                    }
                     {kit === "overall" ? <td><div className="kit-tier-strip">
                       {ALL_KITS.map((kitId) => {
                         const tier = entry.kits?.find((item) => item.kit === kitId)?.tier || "Unranked";
@@ -695,7 +684,7 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                     </>}
                     <td><ArrowRight size={15} className="row-arrow" /></td>
                   </tr>
-                )) : <tr><td colSpan={kit === "overall" ? 6 : 7}><EmptyState icon={Trophy} title="No rankings yet"
+                )) : <tr><td colSpan={kit === "overall" ? 5 : 7}><EmptyState icon={Trophy} title="No rankings yet"
                   message="Verified GrindPvP players will appear here as soon as they have rankings." /></td></tr>}
             </tbody>
           </table>
@@ -1286,7 +1275,7 @@ function Skeleton({ className = "" }: { className?: string }) {
 
 function SkeletonRow({ overall = false }: { overall?: boolean }) {
   return <tr className="skeleton-row"><td><Skeleton /></td><td><Skeleton /></td><td><Skeleton /></td>
-    <td><Skeleton /></td>{overall ? <td><Skeleton /></td> : <><td><Skeleton /></td><td><Skeleton /></td></>}<td /></tr>;
+    {overall ? <><td><Skeleton /></td><td /></> : <><td><Skeleton /></td><td><Skeleton /></td><td><Skeleton /></td><td /></>}</tr>;
 }
 
 function ProfileSkeleton() {
