@@ -223,7 +223,15 @@ function RankSkinModel({ uuid }: { uuid: string }) {
         preserveDrawingBuffer: true,
       });
       viewer.zoom = 1.05;
-      viewer.playerWrapper.rotation.y = -Math.PI / 4;
+      viewer.playerWrapper.rotation.y = Math.PI / 4;
+      const cameraPitch = (12 * Math.PI) / 180;
+      const cameraDistance = viewer.camera.position.length();
+      viewer.camera.position.set(
+        0,
+        Math.sin(cameraPitch) * cameraDistance,
+        Math.cos(cameraPitch) * cameraDistance,
+      );
+      viewer.camera.lookAt(0, 0, 0);
       return viewer.loadSkin(skinTextureUrl(uuid)).then(() => {
         if (disposed || !viewer) return;
         viewer.render();
