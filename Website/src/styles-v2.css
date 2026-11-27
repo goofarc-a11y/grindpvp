@@ -1,0 +1,267 @@
+:root {
+  --bg: #0c0d0f;
+  --panel: #141518;
+  --panel-raised: #191a1d;
+  --line: #292a2e;
+  --line-soft: #202125;
+  --text: #f0f0f1;
+  --muted: #92939a;
+  --subtle: #686a72;
+  --orange: #ff7a24;
+  --orange-bright: #ff914c;
+  --orange-soft: rgba(255, 122, 36, .12);
+}
+
+body { background: var(--bg); }
+
+.app-shell {
+  background:
+    radial-gradient(ellipse at 50% -38%, rgba(255, 122, 36, .09), transparent 43%),
+    #0c0d0f;
+}
+
+.topbar {
+  height: 68px;
+  padding-inline: clamp(18px, 5vw, 72px);
+  border-bottom-color: #222327;
+  background: rgba(12, 13, 15, .92);
+}
+
+.brand-mark { border-radius: 8px; }
+.main-nav { gap: 7px; }
+.nav-link, .admin-shortcut { border-radius: 7px; }
+.nav-link.active {
+  color: #ff9a5c;
+  background: rgba(255, 122, 36, .1);
+  border-color: rgba(255, 122, 36, .18);
+}
+
+.page-frame {
+  width: min(1420px, 100%);
+  padding-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.kit-sidebar {
+  position: static;
+  width: 100%;
+  flex: 0 0 auto;
+  margin: 0 0 27px;
+  padding: 12px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #25262a;
+  border-radius: 10px;
+  background: rgba(18, 19, 22, .94);
+  box-shadow: none;
+}
+
+.sidebar-heading {
+  flex: 0 0 100%;
+  padding: 1px 5px 5px;
+  color: #85868d;
+  font-size: 9px;
+}
+
+.kit-group-label {
+  margin: 0 2px 0 4px;
+  color: #62646b;
+  font-size: 8px;
+  letter-spacing: .9px;
+}
+
+.kit-group-label.sub-label { margin: 0 2px 0 9px; }
+
+.kit-link {
+  width: auto;
+  height: 33px;
+  margin: 0;
+  padding: 0 10px;
+  gap: 7px;
+  border: 1px solid #27282c;
+  border-radius: 6px;
+  background: #141518;
+  color: #a4a5ab;
+  font-size: 10.5px;
+}
+
+.kit-link svg { width: 14px; }
+.kit-link:hover { background: #1c1d20; }
+.kit-link.selected {
+  border-color: rgba(255, 122, 36, .3);
+  background: rgba(255, 122, 36, .1);
+  color: #ff9a5c;
+}
+
+.sidebar-foot {
+  margin: 0 0 0 auto;
+  padding: 0 2px 0 10px;
+  border: 0;
+}
+
+.sidebar-foot-icon { width: 25px; height: 25px; }
+.sidebar-foot strong { font-size: 9px; }
+.sidebar-foot small { font-size: 8px; }
+.main-content { width: 100%; }
+
+.page-heading { min-height: 67px; margin-top: 0; }
+.page-heading h1 { font-size: clamp(27px, 3vw, 33px); }
+.eyebrow { letter-spacing: 1.25px; }
+
+.hero-strip {
+  min-height: 94px;
+  padding: 17px 20px;
+  border-color: #2c2926;
+  border-radius: 9px;
+  background:
+    radial-gradient(ellipse at 92% 50%, rgba(255, 122, 36, .1), transparent 31%),
+    #151517;
+  box-shadow: none;
+}
+
+.hero-text strong { font-size: 20px; }
+.hero-text small { color: #888078; }
+.hero-stats { gap: 24px; }
+
+.section-title-row { margin-bottom: 11px; }
+.section-title-row h2, .panel-heading h2, .search-result-heading h2 { font-size: 13px; }
+.podium-grid { gap: 9px; }
+
+.podium-card, .podium-card.first {
+  height: 88px;
+  min-height: 88px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  justify-items: start;
+  column-gap: 11px;
+  border-color: #292a2e;
+  border-radius: 8px;
+  background: #141518;
+}
+
+.podium-card.first { background: linear-gradient(110deg, rgba(255, 122, 36, .085), #141518 72%); }
+.podium-card.second { border-color: #292a2e; }
+.podium-card.third { border-color: #292a2e; }
+.podium-card-top { inset: 9px 10px auto auto; }
+.podium-rank { color: #777980; font-size: 9px; }
+.first .podium-rank { color: #ffad5c; }
+.podium-arrow { display: none; }
+
+.podium-avatar {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  border-radius: 6px;
+}
+
+.podium-username {
+  grid-column: 2;
+  grid-row: 1;
+  max-width: 100%;
+  color: #ededee;
+  font-size: 10px;
+}
+
+.podium-tier {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  padding: 3px 6px;
+  font-size: 7.5px;
+}
+
+.podium-points {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  margin: 0;
+  padding-right: 7px;
+  font-size: 11px;
+}
+
+.podium-empty { grid-column: 1 / -1; justify-self: center; }
+.podium-glow { opacity: .35; }
+.panel {
+  border-color: #28292d;
+  border-radius: 9px;
+  background: #131417;
+  box-shadow: none;
+}
+
+.leaderboard-panel { margin-top: 0; }
+.panel-heading { padding: 15px 17px; }
+.table-kit-label { border-radius: 6px; }
+.player-table thead { background: #17181b; }
+.player-table th {
+  height: 34px;
+  border-color: #25262a;
+  color: #777980;
+  font-size: 8px;
+}
+
+.player-table td {
+  height: 50px;
+  border-bottom-color: #222327;
+}
+
+.player-row:hover { background: rgba(255, 255, 255, .025); }
+.table-player > img { border-radius: 6px; }
+.tier-badge { border-radius: 4px; }
+.pagination { min-height: 51px; }
+.pagination button { border-radius: 6px; }
+.site-footer { border-top-color: #222327; }
+
+.search-hero, .my-profile-empty {
+  border-radius: 10px;
+  background-color: #141518;
+}
+
+.profile-result-card, .podium-card, .settings-panel, .admin-login-wrap {
+  border-radius: 8px;
+}
+
+@media (max-width: 1050px) {
+  .kit-group-label { display: none; }
+  .sidebar-foot { margin-left: auto; }
+}
+
+@media (max-width: 760px) {
+  .topbar { padding-inline: 16px; }
+  .page-frame { padding: 20px 16px 34px; }
+  .kit-sidebar { margin-bottom: 21px; padding: 11px; gap: 5px; }
+  .sidebar-foot { display: none; }
+  .kit-link { height: 31px; padding-inline: 8px; font-size: 9px; }
+  .hero-strip { min-height: 88px; padding: 14px; }
+  .hero-stats { gap: 13px; }
+  .podium-grid { gap: 6px; }
+  .podium-card, .podium-card.first { padding-inline: 9px; column-gap: 7px; }
+  .podium-points { font-size: 9px; }
+  .podium-points small { font-size: 7px; }
+}
+
+@media (max-width: 620px) {
+  .page-frame { padding: 17px 13px 30px; }
+  .kit-sidebar { align-items: center; }
+  .sidebar-heading { padding-bottom: 4px; }
+  .kit-link { padding-inline: 7px; gap: 5px; }
+  .kit-link svg { width: 12px; }
+  .page-heading { margin-bottom: 16px; }
+  .page-heading h1 { font-size: 26px; }
+  .hero-strip { margin-bottom: 19px; }
+  .hero-text strong { font-size: 17px; }
+  .podium-card, .podium-card.first { height: 80px; min-height: 80px; padding-inline: 7px; }
+  .podium-avatar { width: 28px; height: 28px; }
+  .podium-username { font-size: 8px; }
+  .podium-tier { font-size: 6.5px; }
+  .podium-points { padding-right: 3px; font-size: 8px; }
+  .podium-points small { display: none; }
+  .panel-heading { padding-inline: 12px; }
+}

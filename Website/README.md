@@ -14,6 +14,11 @@ npm install
 npm run dev
 ```
 
+The website currently loads the v2 visual theme from `src/styles-v2.css` after
+the original `src/styles.css`. To switch back to v1, remove the
+`styles-v2.css` import from `src/main.tsx`; the original stylesheet and all
+website features remain unchanged.
+
 Vite proxies `/api` requests to the same backend host used by the mod. To point
 the development proxy at a different backend, create `.env.local` and set
 `GRINDPVP_API_TARGET` to its HTTPS URL (or localhost during local development).
