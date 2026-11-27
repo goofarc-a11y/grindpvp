@@ -23,6 +23,11 @@ export interface KitStats {
   winrate: number;
 }
 
+export interface KitTier {
+  kit: string;
+  tier: string;
+}
+
 export interface Player {
   uuid: string;
   username: string;
@@ -32,6 +37,7 @@ export interface Player {
   overall_tier: string;
   overall_average_points: number;
   kits: KitStats[];
+  overall_rank?: number | null;
 }
 
 export interface LeaderboardEntry {
@@ -47,6 +53,7 @@ export interface LeaderboardEntry {
   matches?: number;
   winrate?: number;
   rank: number;
+  kits?: KitTier[];
 }
 
 export interface PageResult<T> {

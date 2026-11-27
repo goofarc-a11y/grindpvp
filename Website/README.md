@@ -18,7 +18,12 @@ The website currently loads the v2 visual theme from `src/styles-v2.css` after
 the original `src/styles.css`. To switch back to v1, remove the
 `styles-v2.css` import from `src/main.tsx`; the original stylesheet and all
 website features remain unchanged. V2 uses Geist typography, color-coded kit
-tabs, and tiered skin cards inspired by the MCTiers rankings layout.
+tabs, and tiered skin cards inspired by the MCTiers rankings layout. The Overall
+board shows the tier for each kit using the icons in `public/kiticons`; selecting
+a player opens a profile preview with main and sub kits on separate rows. The
+preview links to NameMC and keeps the existing detailed profile behind its
+"Detailed view" button. Region is shown as unavailable until GrindPvP stores
+player region data.
 
 Vite proxies `/api` requests to the same backend host used by the mod. To point
 the development proxy at a different backend, create `.env.local` and set

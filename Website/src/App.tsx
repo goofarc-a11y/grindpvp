@@ -16,11 +16,13 @@ import {
   Droplets,
   Eye,
   EyeOff,
+  ExternalLink,
   Flame,
   Gem,
   LoaderCircle,
   LogIn,
   LogOut,
+  MapPin,
   Medal,
   Moon,
   RefreshCw,
@@ -34,6 +36,7 @@ import {
   UsersRound,
   Waves,
   Wind,
+  X,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -85,8 +88,25 @@ const KIT_ICONS: Record<string, LucideIcon> = {
   spearmace: Target,
   manhunt: Search,
 };
+const KIT_ICON_FILES: Record<string, string> = {
+  sword: "sword.svg",
+  axe: "axe.svg",
+  uhc: "uhc.svg",
+  diapot: "pot.svg",
+  nethop: "nethop.svg",
+  smp: "smp.svg",
+  mace: "mace.svg",
+  crystal: "vanilla.svg",
+  speed: "speed-116175c6.svg",
+  diasmp: "dia_smp-20261119.svg",
+  ogvanilla: "og_vanilla-20261119.svg",
+  cart: "minecart-20261119.svg",
+  spearmace: "spear.png",
+  manhunt: "manhunt-20261119.svg",
+};
 const MAIN_KITS = ["sword", "axe", "uhc", "diapot", "nethop", "smp", "mace", "crystal"];
 const SUB_KITS = ["speed", "diasmp", "ogvanilla", "cart", "spearmace", "manhunt"];
+const ALL_KITS = [...MAIN_KITS, ...SUB_KITS];
 const PAGE_SIZE = 25;
 const TOKEN_KEY = "grindpvp.admin.session";
 const MY_PROFILE_KEY = "grindpvp.my-profile.uuid";
@@ -137,6 +157,15 @@ function displayKit(kit: string) {
   return KIT_LABELS[kit] || kit;
 }
 
+function KitIcon({ kit, className }: { kit: string; className?: string }) {
+  const file = KIT_ICON_FILES[kit];
+  if (file) {
+    return <img className={`kit-asset-icon ${className || ""}`} src={`/kiticons/${file}`} alt="" aria-hidden="true" />;
+  }
+  const Icon = KIT_ICONS[kit] || Swords;
+  return <Icon className={className} size={18} aria-hidden="true" />;
+}
+
 function tierColor(name: string, tiers: TierDefinition[]) {
   return tiers.find((tier) => tier.name === name)?.color || "#8a8e95";
 }
@@ -156,6 +185,8 @@ function App() {
   const [profileUuid, setProfileUuid] = useState("");
   const [profile, setProfile] = useState<Player | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [profileDetailView, setProfileDetailView] = useState(false);
   const [matches, setMatches] = useState<PageResult<MatchRecord> | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState<Player[]>([]);
@@ -178,6 +209,8 @@ function App() {
       if (next === page) return;
       playUiSound(settings, "page");
       setPage(next);
+      setProfileModalOpen(false);
+      setProfileDetailView(false);
       if (next === "my-profile") setProfileUuid(myProfileUuid);
       if (next === "profiles") setProfileUuid("");
       setStatusMessage("");
@@ -250,9 +283,10 @@ function App() {
     if (!profileUuid) {
       setProfile(null);
       setMatches(null);
+      setProfileLoading(false);
       return;
     }
-    if (page !== "my-profile" && page !== "profiles") return;
+    if (page !== "my-profile" && page !== "profiles" && !profileModalOpen) return;
     const controller = new AbortController();
     setProfileLoading(true);
     setProfile(null);
@@ -275,7 +309,7 @@ function App() {
       .then(setMatches)
       .catch(() => !controller.signal.aborted && setMatches(null));
     return () => controller.abort();
-  }, [page, profileUuid, refreshVersion]);
+  }, [page, profileUuid, profileModalOpen, refreshVersion]);
 
   useEffect(() => {
     if (page !== "admin" || !adminToken) return;
@@ -316,17 +350,36 @@ function App() {
   };
 
   const openProfile = (uuid: string, origin: "profiles" | "my-profile" = "profiles") => {
+    setStatusMessage("");
     if (origin === "my-profile") {
       setMyProfileUuid(uuid);
       localStorage.setItem(MY_PROFILE_KEY, uuid);
       setProfileUuid(uuid);
-    } else if (page !== "profiles") {
-      changePage("profiles");
-      setProfileUuid(uuid);
+      setProfileModalOpen(false);
+      setProfileDetailView(true);
     } else {
       setProfileUuid(uuid);
+      setProfileModalOpen(true);
+      setProfileDetailView(false);
     }
   };
+
+  const closeProfilePreview = useCallback(() => {
+    setProfileModalOpen(false);
+    setProfileDetailView(false);
+    setProfileUuid("");
+    setStatusMessage("");
+  }, []);
+
+  const showDetailedProfile = useCallback(() => {
+    const selectedUuid = profileUuid;
+    if (page !== "profiles") {
+      changePage("profiles");
+      setProfileUuid(selectedUuid);
+    }
+    setProfileModalOpen(false);
+    setProfileDetailView(true);
+  }, [changePage, page, profileUuid]);
 
   const doAdminLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -457,6 +510,11 @@ function App() {
                 catalog={catalog} kit={selectedKit} page={leaderboardPage} data={leaderboard}
                 loading={loadingLeaderboard} error={statusMessage} tierColor={(tier) => tierColor(tier, catalog?.tiers || [])}
                 onPage={setLeaderboardPage} onProfile={(uuid) => openProfile(uuid)} totalPlayers={leaderboard?.total || 0}
+                onSwitchOverall={() => {
+                  setSelectedKit("overall");
+                  setLeaderboardPage(1);
+                  playUiSound(settings, "click");
+                }}
                 play={(kind) => playUiSound(settings, kind)}
               />
             )}
@@ -475,11 +533,11 @@ function App() {
             )}
             {page === "profiles" && (
               <ProfilesPage
-                profile={profile} loading={profileLoading} uuid={profileUuid} matches={matches} catalog={catalog}
+                profile={profile} loading={profileLoading} uuid={profileDetailView ? profileUuid : ""} matches={matches} catalog={catalog}
                 error={statusMessage} searchValue={searchValue} searchResults={searchResults}
                 searching={searchLoading} searchError={searchError} onSearchValue={setSearchValue}
                 onSearch={performSearch} onSelect={(uuid) => openProfile(uuid)}
-                onBack={() => { setProfileUuid(""); setStatusMessage(""); }} />
+                onBack={() => { setProfileUuid(""); setProfileDetailView(false); setStatusMessage(""); }} />
             )}
             {page === "settings" && <SettingsPage settings={settings} update={setSettings} />}
             {page === "admin" && (
@@ -492,6 +550,8 @@ function App() {
           </div>
         </main>
       </div>
+      {profileModalOpen && <ProfileSummaryModal profile={profile} loading={profileLoading} catalog={catalog}
+        error={statusMessage} onClose={closeProfilePreview} onDetails={showDetailedProfile} />}
       <footer className="site-footer">
         <span><span className="footer-dot" /> GrindPvP rankings are updated live</span>
         <span>One community. One leaderboard.</span>
@@ -502,11 +562,10 @@ function App() {
 
 function KitSidebar({ selectedKit, selectKit }: { selectedKit: string; selectKit: (kit: string) => void }) {
   const renderKit = (kit: string) => {
-    const Icon = KIT_ICONS[kit] || Swords;
     return (
       <button key={kit} type="button" data-sound-handled className={`kit-link ${selectedKit === kit ? "selected" : ""}`}
         data-kit={kit} onClick={() => selectKit(kit)} title={displayKit(kit)}>
-        <Icon size={16} strokeWidth={1.8} /><span>{displayKit(kit)}</span>
+        <KitIcon kit={kit} /><span>{displayKit(kit)}</span>
         {selectedKit === kit && <span className="kit-active-dot" />}
       </button>
     );
@@ -544,10 +603,11 @@ function PageHeading({ eyebrow, title, subtitle, right }: {
 }
 
 function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: color,
-  onPage, onProfile, totalPlayers, play }: {
+  onPage, onProfile, onSwitchOverall, totalPlayers, play }: {
   catalog: Catalog | null; kit: string; page: number; data: PageResult<LeaderboardEntry> | null;
   loading: boolean; error: string; tierColor: (tier: string) => string; onPage: (page: number) => void;
-  onProfile: (uuid: string) => void; totalPlayers: number; play: (kind: "click" | "hover") => void;
+  onProfile: (uuid: string) => void; onSwitchOverall: () => void; totalPlayers: number;
+  play: (kind: "click" | "hover") => void;
 }) {
   const rows = data?.items || [];
   const top = rows.filter((entry) => entry.rank <= 3);
@@ -587,15 +647,19 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
       <section className="panel leaderboard-panel">
         <div className="panel-heading">
           <div><h2>All competitors</h2><p>{data?.total ?? "—"} verified players on this board</p></div>
-          <div className="table-kit-label"><span className="table-kit-icon">{(() => {
-            const Icon = KIT_ICONS[kit] || Trophy; return <Icon size={15} />;
-          })()}</span>{displayKit(kit)}<ChevronDown size={14} /></div>
+          <div className="leaderboard-controls">
+            {kit !== "overall" && <button type="button" className="button-secondary leaderboard-overall-switch"
+              onClick={onSwitchOverall}><Trophy size={14} /> Overall leaderboard</button>}
+            <div className="table-kit-label"><span className="table-kit-icon"><KitIcon kit={kit} /></span>
+              {displayKit(kit)}<ChevronDown size={14} /></div>
+          </div>
         </div>
         <div className="table-scroll">
-          <table className="player-table">
-            <thead><tr><th>RANK</th><th>PLAYER</th><th>TIER</th><th>POINTS</th><th>W / L</th><th>WIN RATE</th><th /></tr></thead>
+          <table className={`player-table ${kit === "overall" ? "is-overall" : ""}`}>
+            <thead><tr><th>RANK</th><th>PLAYER</th><th>TIER</th><th>POINTS</th>
+              {kit === "overall" ? <th>KIT TIERS</th> : <><th>W / L</th><th>WIN RATE</th></>}<th /></tr></thead>
             <tbody>
-              {loading ? Array.from({ length: 7 }, (_, index) => <SkeletonRow key={index} />)
+              {loading ? Array.from({ length: 7 }, (_, index) => <SkeletonRow key={index} overall={kit === "overall"} />)
                 : rows.length ? rows.map((entry) => (
                   <tr key={entry.uuid} className="player-row" onClick={() => onProfile(entry.uuid)} tabIndex={0}
                     onKeyDown={(event) => event.key === "Enter" && onProfile(entry.uuid)}>
@@ -604,16 +668,34 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                       <img src={avatarUrl(entry.uuid)} alt="" loading="lazy" />
                     </div></td>
                     <td><div className="table-player">
-                      <span><strong>{entry.username}</strong><small>{entry.role_name ? `${entry.role_name} · ` : ""}{entry.title_name || "GrindPvP player"}</small></span>
+                      <span><strong>{entry.username}</strong><small>
+                        {entry.role_name && <span style={{ color: roleColor(entry.role_name, catalog) }}>{entry.role_name} · </span>}
+                        {entry.title_name
+                          ? <span style={{ color: titleColor(entry.title_name, catalog) }}>{entry.title_name}</span>
+                          : <span>GrindPvP player</span>}
+                      </small></span>
                       {entry.title_name && <BadgeCheck size={14} className="verified-mark" />}</div></td>
                     <td><TierBadge name={entry.tier} color={color(entry.tier)} /></td>
                     <td className="points-cell">{(entry.points ?? entry.average_points ?? 0).toFixed(entry.average_points !== undefined ? 2 : 0)}
                       {entry.average_points !== undefined && <small> avg</small>}</td>
-                    <td className="muted-cell">{entry.wins !== undefined ? `${entry.wins} / ${entry.losses ?? 0}` : "—"}</td>
-                    <td>{entry.winrate !== undefined ? <span className="winrate"><span className="winrate-track"><i style={{ width: `${Math.min(100, Math.max(0, entry.winrate))}%` }} /></span>{entry.winrate}%</span> : <span className="muted-cell">—</span>}</td>
+                    {kit === "overall" ? <td><div className="kit-tier-strip">
+                      {ALL_KITS.map((kitId) => {
+                        const tier = entry.kits?.find((item) => item.kit === kitId)?.tier || "Unranked";
+                        return <span key={kitId} className={`kit-tier-item ${tier === "Unranked" ? "unranked" : ""}`}
+                          title={`${displayKit(kitId)}: ${tier}`} aria-label={`${displayKit(kitId)}: ${tier}`}>
+                          <span className="kit-tier-ring" style={{ "--kit-tier-color": color(tier) } as React.CSSProperties}>
+                            <KitIcon kit={kitId} />
+                          </span>
+                          <small>{tier === "Unranked" ? "—" : tier}</small>
+                        </span>;
+                      })}
+                    </div></td> : <>
+                      <td className="muted-cell">{entry.wins !== undefined ? `${entry.wins} / ${entry.losses ?? 0}` : "—"}</td>
+                      <td>{entry.winrate !== undefined ? <span className="winrate"><span className="winrate-track"><i style={{ width: `${Math.min(100, Math.max(0, entry.winrate))}%` }} /></span>{entry.winrate}%</span> : <span className="muted-cell">—</span>}</td>
+                    </>}
                     <td><ArrowRight size={15} className="row-arrow" /></td>
                   </tr>
-                )) : <tr><td colSpan={7}><EmptyState icon={Trophy} title="No rankings yet"
+                )) : <tr><td colSpan={kit === "overall" ? 6 : 7}><EmptyState icon={Trophy} title="No rankings yet"
                   message="Verified GrindPvP players will appear here as soon as they have rankings." /></td></tr>}
             </tbody>
           </table>
@@ -741,6 +823,112 @@ function ProfilePage({ title, subtitle, profile, loading, uuid, matches, catalog
   );
 }
 
+function ProfileSummaryModal({ profile, loading, catalog, error, onClose, onDetails }: {
+  profile: Player | null; loading: boolean; catalog: Catalog | null; error: string;
+  onClose: () => void; onDetails: () => void;
+}) {
+  const [skinFailed, setSkinFailed] = useState(false);
+
+  useEffect(() => {
+    setSkinFailed(false);
+  }, [profile?.uuid]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="profile-preview-backdrop" onClick={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section className="profile-preview-modal" role="dialog" aria-modal="true" aria-label="Player profile preview">
+        <header className="profile-preview-header">
+          <div><span className="hero-kicker">PLAYER PROFILE</span><strong>{profile?.username || "Profile preview"}</strong></div>
+          <div className="profile-preview-actions">
+            {profile && <button type="button" className="button-secondary profile-detail-button" onClick={onDetails}>
+              Detailed view <ArrowRight size={14} />
+            </button>}
+            <button type="button" className="profile-preview-close" aria-label="Close profile preview" onClick={onClose}>
+              <X size={17} />
+            </button>
+          </div>
+        </header>
+        {error && <div className="profile-preview-error"><Notice message={error} /></div>}
+        {loading ? <div className="profile-preview-loading"><LoaderCircle size={23} className="spin" /> Loading player profile…</div>
+          : profile ? <>
+            <div className="profile-preview-main">
+              <div className="profile-preview-skin">
+                <img src={avatarUrl(profile.uuid, !skinFailed)} alt={`${profile.username}'s Minecraft skin`}
+                  onError={() => setSkinFailed(true)} />
+              </div>
+              <div className="profile-preview-identity">
+                <div className="profile-preview-badges">
+                  {profile.verified && <span className="verified-pill"><BadgeCheck size={13} /> Verified</span>}
+                  {profile.role_name && <span className="role-pill" style={{ color: roleColor(profile.role_name, catalog) }}>
+                    {profile.role_name}
+                  </span>}
+                </div>
+                <h2>{profile.username}</h2>
+                {profile.title_name && <span className="profile-preview-title" style={{
+                  color: titleColor(profile.title_name, catalog),
+                  borderColor: `${titleColor(profile.title_name, catalog)}55`,
+                  background: `${titleColor(profile.title_name, catalog)}16`,
+                }}>{profile.title_name}</span>}
+                <div className="profile-preview-meta">
+                  <span><MapPin size={14} /> Region not set</span>
+                  <a href={`https://namemc.com/profile/${profile.uuid.replace(/-/g, "")}`} target="_blank" rel="noreferrer">
+                    NameMC <ExternalLink size={13} />
+                  </a>
+                </div>
+              </div>
+              <div className="profile-preview-position">
+                <span>OVERALL POSITION</span>
+                <strong>{profile.overall_rank ? `#${profile.overall_rank}` : "—"}</strong>
+                <small>{profile.overall_tier} · {profile.overall_average_points.toFixed(2)} pts</small>
+              </div>
+            </div>
+            <div className="profile-preview-kits">
+              <ProfileKitTierGroup title="MAIN KITS" kits={MAIN_KITS} profile={profile} catalog={catalog} />
+              <ProfileKitTierGroup title="SUB KITS" kits={SUB_KITS} profile={profile} catalog={catalog} />
+            </div>
+          </> : <div className="profile-preview-loading">This GrindPvP profile could not be loaded.</div>}
+      </section>
+    </div>
+  );
+}
+
+function ProfileKitTierGroup({ title, kits, profile, catalog }: {
+  title: string; kits: string[]; profile: Player; catalog: Catalog | null;
+}) {
+  return <div className="profile-kit-group">
+    <strong className="profile-kit-group-title">{title}</strong>
+    <div className="profile-kit-group-items">
+      {kits.map((kit) => {
+        const stats = profile.kits.find((item) => item.kit === kit);
+        const tier = stats?.tier || "Unranked";
+        const color = tierColor(tier, catalog?.tiers || []);
+        return <div key={kit} className={`profile-kit-tier ${tier === "Unranked" ? "unranked" : ""}`}
+          title={`${displayKit(kit)}: ${tier}`}>
+          <span className="profile-kit-tier-ring" style={{ "--kit-tier-color": color } as React.CSSProperties}>
+            <KitIcon kit={kit} />
+          </span>
+          <strong>{displayKit(kit)}</strong>
+          <small style={{ color }}>{tier === "Unranked" ? "—" : tier}</small>
+        </div>;
+      })}
+    </div>
+  </div>;
+}
+
 function ProfileDetail({ title, subtitle, profile, loading, matches, catalog, error, onBack }: {
   title: string; subtitle: string; profile: Player | null; loading: boolean;
   matches: PageResult<MatchRecord> | null; catalog: Catalog | null; error: string; onBack?: () => void;
@@ -788,9 +976,8 @@ function ProfileDetail({ title, subtitle, profile, loading, matches, catalog, er
             <div className="panel-heading"><div><h2>Kit statistics</h2><p>All main kits and sub kits</p></div><span className="panel-count">{profile.kits.length} KITS</span></div>
             <div className="kit-stats-list">
               {profile.kits.map((kit) => {
-                const Icon = KIT_ICONS[kit.kit] || Swords;
                 return <div key={kit.kit} className="kit-stat-row">
-                  <span className="kit-stat-icon"><Icon size={17} /></span>
+                  <span className="kit-stat-icon"><KitIcon kit={kit.kit} /></span>
                   <span className="kit-stat-name">{displayKit(kit.kit)}<small>{kit.matches} matches</small></span>
                   <TierBadge name={kit.tier} color={tierColor(kit.tier, catalog?.tiers || [])} />
                   <span className="kit-stat-record"><b>{kit.wins}</b><small>W</small><span>/</span><b>{kit.losses}</b><small>L</small></span>
@@ -1097,9 +1284,9 @@ function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`skeleton ${className}`} />;
 }
 
-function SkeletonRow() {
+function SkeletonRow({ overall = false }: { overall?: boolean }) {
   return <tr className="skeleton-row"><td><Skeleton /></td><td><Skeleton /></td><td><Skeleton /></td>
-    <td><Skeleton /></td><td><Skeleton /></td><td><Skeleton /></td><td /></tr>;
+    <td><Skeleton /></td>{overall ? <td><Skeleton /></td> : <><td><Skeleton /></td><td><Skeleton /></td></>}<td /></tr>;
 }
 
 function ProfileSkeleton() {
@@ -1124,6 +1311,10 @@ function formatDate(value: string) {
 
 function roleColor(role: string, catalog: Catalog | null) {
   return catalog?.roles.find((item) => item.name === role)?.color || "#ff7a24";
+}
+
+function titleColor(title: string, catalog: Catalog | null) {
+  return catalog?.titles.find((item) => item.name === title)?.color || "#9e99da";
 }
 
 export default App;
