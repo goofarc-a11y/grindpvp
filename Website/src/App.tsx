@@ -224,7 +224,7 @@ function RankSkinModel({ uuid }: { uuid: string }) {
       });
       viewer.zoom = 1.05;
       viewer.playerWrapper.rotation.y = Math.PI / 4;
-      const cameraPitch = (12 * Math.PI) / 180;
+      const cameraPitch = Math.atan(1 / Math.sqrt(2));
       const cameraDistance = viewer.camera.position.length();
       viewer.camera.position.set(
         0,
