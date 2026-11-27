@@ -1337,6 +1337,7 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
   border-color: #29374a;
   background: #141f2d;
   color: #b4c0cf;
+  text-decoration: none;
 }
 .nav-link.discord-link:hover {
   border-color: #43556e;
