@@ -676,7 +676,7 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                         </span>}
                       </small></span>
                       {entry.title_name && <BadgeCheck size={14} className="verified-mark" />}</div></td>
-                    <td><TierBadge name={entry.tier} color={color(entry.tier)} /></td>
+                    <td><TierBadge name={entry.tier} color={color(entry.tier)} compact={kit !== "overall"} /></td>
                     {kit !== "overall" && <td className="points-cell">{(entry.points ?? 0).toFixed(0)}
                       {entry.average_points !== undefined && <small> avg</small>}</td>
                     }
@@ -688,7 +688,10 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                           <span className="kit-tier-ring" style={{ "--kit-tier-color": color(tier) } as React.CSSProperties}>
                             <KitIcon kit={kitId} />
                           </span>
-                          <small>{tier === "Unranked" ? "—" : tier}</small>
+                          <small className={`tier-tag ${tier === "Unranked" ? "unranked" : ""}`}
+                            style={{ "--tier-color": color(tier) } as React.CSSProperties}>
+                            {tier === "Unranked" ? "—" : tier}
+                          </small>
                         </span>;
                       })}
                     </div></td> : <>
@@ -832,10 +835,10 @@ function ProfileSummaryModal({ profile, loading, catalog, error, onClose, onDeta
     }}>
       <section className="profile-preview-modal" role="dialog" aria-modal="true" aria-label="Player profile preview">
         <header className="profile-preview-header">
-          <div><span className="hero-kicker">PLAYER PROFILE</span><strong>{profile?.username || "Profile preview"}</strong></div>
           <div className="profile-preview-actions">
-            {profile && <button type="button" className="button-secondary profile-detail-button" onClick={onDetails}>
-              Detailed view <ArrowRight size={14} />
+            {profile && <button type="button" className="profile-detail-icon" aria-label="Open detailed profile"
+              title="Open detailed profile" onClick={onDetails}>
+              <ArrowRight size={17} />
             </button>}
             <button type="button" className="profile-preview-close" aria-label="Close profile preview" onClick={onClose}>
               <X size={17} />
@@ -851,34 +854,36 @@ function ProfileSummaryModal({ profile, loading, catalog, error, onClose, onDeta
                   onError={() => setSkinFailed(true)} />
               </div>
               <div className="profile-preview-identity">
-                <div className="profile-preview-badges">
-                  {profile.verified && <span className="verified-pill"><BadgeCheck size={13} /> Verified</span>}
-                  {profile.role_name && <span className="role-pill" style={{ color: roleColor(profile.role_name, catalog) }}>
-                    {profile.role_name}
-                  </span>}
-                </div>
-                <h2>{profile.username}</h2>
-                {profile.title_name && <span className="profile-preview-title" style={{
-                  color: titleColor(profile.title_name, catalog),
-                  borderColor: `${titleColor(profile.title_name, catalog)}55`,
-                  background: `${titleColor(profile.title_name, catalog)}16`,
-                }}>{profile.title_name}</span>}
+                <h2>{profile.username}{profile.verified && <BadgeCheck size={17} aria-label="Verified" />}</h2>
+                <span className="profile-preview-tier"><Medal size={21} />{profile.overall_tier}</span>
                 <div className="profile-preview-meta">
                   <span><MapPin size={14} /> Region not set</span>
-                  <a href={`https://namemc.com/profile/${profile.uuid.replace(/-/g, "")}`} target="_blank" rel="noreferrer">
-                    NameMC <ExternalLink size={13} />
+                  <a className="profile-preview-namemc"
+                    href={`https://namemc.com/profile/${profile.uuid.replace(/-/g, "")}`} target="_blank" rel="noreferrer">
+                    <span className="profile-preview-namemc-mark">N</span>NameMC <ExternalLink size={13} />
                   </a>
                 </div>
               </div>
               <div className="profile-preview-position">
-                <span>OVERALL POSITION</span>
-                <strong>{profile.overall_rank ? `#${profile.overall_rank}` : "—"}</strong>
-                <small>{profile.overall_tier} · {profile.overall_average_points.toFixed(2)} pts</small>
+                <span>POSITION</span>
+                <div className="profile-preview-position-card">
+                  <div className={`rank-skin profile-preview-rank ${
+                    profile.overall_rank && profile.overall_rank <= 3 ? `rank-skin-${profile.overall_rank}` : ""
+                  }`}>
+                    <span className="profile-preview-rank-value">
+                      {profile.overall_rank ? `${profile.overall_rank}.` : "—"}
+                    </span>
+                  </div>
+                  <div className="profile-preview-position-summary">
+                    <Trophy size={22} />
+                    <strong>OVERALL</strong>
+                    <small>({Math.round(profile.overall_average_points * ALL_KITS.length)} points)</small>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="profile-preview-kits">
-              <ProfileKitTierGroup title="MAIN KITS" kits={MAIN_KITS} profile={profile} catalog={catalog} />
-              <ProfileKitTierGroup title="SUB KITS" kits={SUB_KITS} profile={profile} catalog={catalog} />
+              <ProfileKitTierGroup title="TIERS" kits={MAIN_KITS} profile={profile} catalog={catalog} />
             </div>
           </> : <div className="profile-preview-loading">This GrindPvP profile could not be loaded.</div>}
       </section>
@@ -901,8 +906,10 @@ function ProfileKitTierGroup({ title, kits, profile, catalog }: {
           <span className="profile-kit-tier-ring" style={{ "--kit-tier-color": color } as React.CSSProperties}>
             <KitIcon kit={kit} />
           </span>
-          <strong>{displayKit(kit)}</strong>
-          <small style={{ color }}>{tier === "Unranked" ? "—" : tier}</small>
+          <small className={`tier-tag ${tier === "Unranked" ? "unranked" : ""}`}
+            style={{ "--tier-color": color } as React.CSSProperties}>
+            {tier === "Unranked" ? "—" : tier}
+          </small>
         </div>;
       })}
     </div>
@@ -962,7 +969,7 @@ function ProfileDetail({ title, subtitle, profile, loading, matches, catalog, er
                 return <div key={kit.kit} className="kit-stat-row">
                   <span className="kit-stat-icon"><KitIcon kit={kit.kit} /></span>
                   <span className="kit-stat-name">{displayKit(kit.kit)}<small>{kit.matches} matches</small></span>
-                  <TierBadge name={kit.tier} color={tierColor(kit.tier, catalog?.tiers || [])} />
+                  <TierBadge name={kit.tier} color={tierColor(kit.tier, catalog?.tiers || [])} compact />
                   <span className="kit-stat-record"><b>{kit.wins}</b><small>W</small><span>/</span><b>{kit.losses}</b><small>L</small></span>
                   <span className="kit-stat-winrate"><b>{kit.winrate.toFixed(1)}%</b><small>win rate</small></span>
                   <span className="kit-stat-points">{kit.points}<small>pts</small></span>
@@ -1236,9 +1243,14 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: string; 
     <small>{label}</small><strong>{value}</strong></div>;
 }
 
-function TierBadge({ name, color, large = false }: { name: string; color: string; large?: boolean }) {
-  return <span className={`tier-badge ${large ? "large" : ""}`} style={{ color, borderColor: `${color}45`, background: `${color}12` }}>
-    <i style={{ backgroundColor: color }} />{name}</span>;
+function TierBadge({ name, color, large = false, compact = false }: {
+  name: string; color: string; large?: boolean; compact?: boolean;
+}) {
+  return <span className={`tier-badge ${large ? "large" : ""} ${compact ? "compact" : ""}`}
+    style={compact
+      ? { color: "#f8e5d9", borderColor: "transparent", background: `${color}99` }
+      : { color, borderColor: `${color}45`, background: `${color}12` }}>
+    {!compact && <i style={{ backgroundColor: color }} />}{name}</span>;
 }
 
 function RankValue({ rank }: { rank: number }) {
