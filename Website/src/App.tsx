@@ -492,6 +492,10 @@ function App() {
               <Icon size={16} /><span>{label}</span>
             </button>
           ))}
+          <a className="nav-link discord-link" data-sound-handled href="https://discord.gg/nGuyrVTH2c"
+            target="_blank" rel="noopener noreferrer" aria-label="Join GrindPvP on Discord">
+            <ExternalLink size={15} /><span>Discord</span>
+          </a>
         </nav>
         <div className="topbar-right">
           <form className="quick-profile-search" role="search" onSubmit={handleQuickSearch}>
@@ -518,7 +522,7 @@ function App() {
 
       <div className="page-frame">
         {(page === "leaderboard" || page === "my-profile" || page === "profiles") && (
-          <KitSidebar selectedKit={selectedKit} selectKit={(kit) => {
+          <KitSidebar selectedKit={selectedKit} connected={page === "leaderboard"} selectKit={(kit) => {
             setSelectedKit(kit);
             setLeaderboardPage(1);
             playUiSound(settings, "click");
@@ -581,7 +585,9 @@ function App() {
   );
 }
 
-function KitSidebar({ selectedKit, selectKit }: { selectedKit: string; selectKit: (kit: string) => void }) {
+function KitSidebar({ selectedKit, connected, selectKit }: {
+  selectedKit: string; connected: boolean; selectKit: (kit: string) => void;
+}) {
   const renderKit = (kit: string) => {
     return (
       <button key={kit} type="button" data-sound-handled className={`kit-link ${selectedKit === kit ? "selected" : ""}`}
@@ -592,7 +598,7 @@ function KitSidebar({ selectedKit, selectKit }: { selectedKit: string; selectKit
     );
   };
   return (
-    <aside className="kit-sidebar" aria-label="Ranked kits">
+    <aside className={`kit-sidebar ${connected ? "connected" : ""}`} aria-label="Ranked kits">
       <div className="sidebar-heading"><span className="live-indicator" /> Ranked kits</div>
       {renderKit("overall")}
       <div className="kit-group-label">MAIN KITS</div>

@@ -1281,15 +1281,21 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
   .rank-skin img { right: 40px; bottom: -76px; }
 }
 
-.rank-skin { background: #111822; }
+.rank-skin { background: #1d2635; }
 .rank-skin-1 { background: #efba3b; }
 .rank-skin-2 { background: #879ea5; }
 .rank-skin-3 { background: #b56329; }
 
 .rank-skin .rank-value {
+  font-family: "Geist", sans-serif;
+  font-size: 31px;
   font-style: italic;
   font-weight: 900;
-  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+  letter-spacing: -0.07em;
+  -webkit-text-stroke: 0.35px rgba(0, 0, 0, 0.5);
+  text-shadow: 2px 2px 0 #111822, 4px 5px 0 rgba(0, 0, 0, 0.78), 0 0 8px rgba(0, 0, 0, 0.35);
+  transform: skewX(-7deg);
 }
 
 .rank-skin .rank-value-two-digits {
@@ -1302,6 +1308,120 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
   min-width: 42px;
   font-size: 15px;
   letter-spacing: -0.06em;
+}
+
+.topbar {
+  top: 12px;
+  width: min(1180px, calc(100% - 32px));
+  height: auto;
+  min-height: 62px;
+  margin: 14px auto 0;
+  padding: 8px 18px;
+  border: 1px solid #253244;
+  border-radius: 20px;
+  background: rgba(15, 22, 32, 0.97);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.24), inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.brand { flex-basis: 168px; }
+.main-nav { flex: 1; align-self: center; justify-content: center; gap: 4px; }
+.nav-link, .admin-shortcut { border-radius: 12px; }
+.main-nav > .nav-link { flex: 0 0 auto; padding-inline: 10px; }
+.nav-link.active {
+  color: #f0f3f8;
+  border-color: #2b3a4d;
+  background: #1d2635;
+}
+.nav-link.active::after { display: none; }
+.nav-link.discord-link {
+  border-color: #29374a;
+  background: #141f2d;
+  color: #b4c0cf;
+}
+.nav-link.discord-link:hover {
+  border-color: #43556e;
+  background: #1d2635;
+  color: #fff;
+}
+.topbar-right { gap: 8px; }
+.quick-profile-search { border-radius: 12px; }
+
+.kit-sidebar.connected {
+  margin-bottom: 0;
+  padding: 10px 12px 0;
+  border: 1px solid #253447;
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  background: #131d2b;
+}
+
+.kit-sidebar.connected .kit-link { border-radius: 13px 13px 0 0; }
+.kit-sidebar.connected .kit-link.selected { background-color: #1d2635; }
+
+.kit-sidebar.connected + .main-content .leaderboard-toolbar {
+  margin: 0;
+  padding: 10px 14px 8px;
+  border-right: 1px solid #253447;
+  border-left: 1px solid #253447;
+  background: #131d2b;
+}
+
+.kit-sidebar.connected + .main-content .leaderboard-panel {
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+}
+
+.panel { border-radius: 18px; }
+.table-scroll { border-radius: 12px; }
+.player-table td:first-child { border-radius: 12px 0 0 12px; }
+.player-table td:last-child { border-radius: 0 12px 12px 0; }
+.button-secondary, .button-quiet, .profile-preview-close { border-radius: 12px; }
+
+@media (max-width: 1100px) {
+  .brand { flex-basis: 140px; }
+  .nav-link { padding-inline: 9px; }
+  .topbar-right { gap: 6px; }
+  .api-status { display: none; }
+  .quick-profile-search { width: 145px; }
+}
+
+@media (max-width: 860px) {
+  .topbar {
+    width: calc(100% - 24px);
+    min-height: 58px;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 9px 12px;
+  }
+  .brand { order: 1; flex: 0 0 auto; }
+  .topbar-right { order: 2; margin-left: auto; }
+  .main-nav {
+    order: 3;
+    flex: 0 0 100%;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .main-nav > .nav-link { flex: 0 0 auto; }
+  .kit-sidebar.connected { padding-inline: 8px; gap: 4px; }
+  .kit-sidebar.connected .kit-link { flex-basis: 66px; width: 66px; height: 62px; }
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    width: calc(100% - 16px);
+    border-radius: 16px;
+    padding: 8px 10px;
+  }
+  .brand-word { font-size: 13px; }
+  .brand-mark { width: 29px; height: 29px; }
+  .quick-profile-search { width: min(120px, 34vw); }
+  .refresh-shortcut { display: none; }
+  .admin-shortcut:not(.refresh-shortcut) { height: 32px; padding-inline: 9px; }
+  .nav-link { height: 34px; padding-inline: 9px; }
+  .kit-sidebar.connected { overflow-x: auto; }
 }
 
 .profile-art-skin {
