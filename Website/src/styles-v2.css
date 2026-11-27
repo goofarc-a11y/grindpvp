@@ -2397,3 +2397,53 @@ body,
   .profile-art-skin { height: 148px; flex-basis: 148px; }
   .profile-art-skin img { height: 148px; max-width: 92px; }
 }
+
+.kit-sidebar.connected .kit-link {
+  height: 62px;
+  font-size: 12px;
+}
+
+.kit-sidebar.connected .kit-link .kit-asset-icon,
+.kit-sidebar.connected .kit-link svg {
+  width: 27px;
+  height: 27px;
+}
+
+.player-table { border-spacing: 0 12px; }
+.player-table td { height: 80px; }
+.player-table.is-overall td { height: 84px; }
+.player-table.is-overall th:first-child,
+.player-table.is-overall td:first-child { width: 174px; }
+.player-table.is-overall th:nth-child(3),
+.player-table.is-overall td:nth-child(3) { width: 680px; min-width: 680px; }
+
+.rank-skin {
+  width: 154px;
+  height: 60px;
+}
+
+.rank-skin img {
+  right: 20px;
+  bottom: -56px;
+  width: auto;
+  height: 112px;
+  object-position: center top;
+}
+
+.kit-tier-strip { gap: 5px; }
+.kit-tier-item { width: 36px; flex-basis: 36px; gap: 3px; }
+.kit-tier-ring { width: 30px; height: 30px; }
+.kit-tier-ring .kit-asset-icon { width: 18px; height: 18px; }
+.kit-tier-item > .tier-tag { min-width: 32px; font-size: 9px; }
+
+@media (max-width: 860px) {
+  .kit-sidebar.connected .kit-link { height: 64px; }
+  .player-table.is-overall th:nth-child(3),
+  .player-table.is-overall td:nth-child(3) { min-width: 680px; }
+}
+
+@media (max-width: 520px) {
+  .kit-sidebar.connected .kit-link { height: 54px; font-size: 9px; }
+  .kit-sidebar.connected .kit-link .kit-asset-icon,
+  .kit-sidebar.connected .kit-link svg { width: 20px; height: 20px; }
+}
