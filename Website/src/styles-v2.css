@@ -1256,7 +1256,7 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
 .kit-tier-ring { width: 34px; height: 34px; }
 .kit-tier-ring .kit-asset-icon { width: 18px; height: 18px; }
 .verified-mark { margin-left: 6px; }
-.rank-skin img { right: 18px; bottom: -84px; }
+.rank-skin img { right: 45px; bottom: -84px; }
 
 @media (max-width: 760px) {
   .quick-profile-search { width: 150px; }
@@ -1278,5 +1278,5 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
   .page-frame { padding-inline: 13px; }
   .player-table.is-overall { min-width: 1240px; }
   .player-table.is-overall td:nth-child(4) { min-width: 650px; }
-  .rank-skin img { right: 13px; bottom: -76px; }
+  .rank-skin img { right: 40px; bottom: -76px; }
 }
