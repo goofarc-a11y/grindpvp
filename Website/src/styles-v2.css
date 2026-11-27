@@ -282,8 +282,8 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
 
 .kit-link {
   position: relative;
-  flex: 0 0 78px;
-  width: 78px;
+  flex: 0 0 70px;
+  width: 70px;
   height: 60px;
   flex-direction: column;
   justify-content: center;
