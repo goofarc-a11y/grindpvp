@@ -59,16 +59,16 @@ const KIT_LABELS: Record<string, string> = {
   sword: "Sword",
   axe: "Axe",
   uhc: "UHC",
-  diapot: "DiaPot",
-  nethop: "NethOP",
+  diapot: "Pot",
+  nethop: "NethPot",
   smp: "SMP",
   mace: "Mace",
-  crystal: "Crystal",
+  crystal: "Vanilla",
   speed: "Speed",
   diasmp: "DiaSMP",
   ogvanilla: "OGVanilla",
   cart: "Cart",
-  spearmace: "Spearmace",
+  spearmace: "Spear",
   manhunt: "Manhunt",
 };
 const KIT_ICONS: Record<string, LucideIcon> = {
@@ -104,8 +104,8 @@ const KIT_ICON_FILES: Record<string, string> = {
   spearmace: "spear.png",
   manhunt: "manhunt-20261119.svg",
 };
-const MAIN_KITS = ["sword", "axe", "uhc", "diapot", "nethop", "smp", "mace", "crystal"];
-const SUB_KITS = ["speed", "diasmp", "ogvanilla", "cart", "spearmace", "manhunt"];
+const MAIN_KITS = ["crystal", "uhc", "diapot", "nethop", "smp", "sword", "axe", "mace"];
+const SUB_KITS = ["spearmace", "speed", "diasmp", "ogvanilla", "cart", "manhunt"];
 const ALL_KITS = [...MAIN_KITS, ...SUB_KITS];
 const PAGE_SIZE = 25;
 const TOKEN_KEY = "grindpvp.admin.session";
