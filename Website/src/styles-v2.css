@@ -1089,7 +1089,7 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
 .podium-tier { padding: 4px 8px; font-size: 10px; }
 .podium-points { font-size: 14px; }
 
-.player-table.is-overall { min-width: 1230px; }
+.player-table.is-overall { min-width: 1230px; table-layout: fixed; }
 .player-table.is-overall td { height: 90px; }
 .player-table.is-overall th:nth-child(4),
 .player-table.is-overall td:nth-child(4) { min-width: 550px; }
