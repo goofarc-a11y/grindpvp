@@ -652,9 +652,10 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
       <section className="panel leaderboard-panel">
         <div className="table-scroll">
           <table className={`player-table ${kit === "overall" ? "is-overall" : ""}`}>
-            <thead><tr><th>RANK</th><th>PLAYER</th><th>TIER</th>
+            <thead><tr><th>#</th><th>PLAYER</th>
+              {kit !== "overall" && <th>TIER</th>}
               {kit !== "overall" && <th>POINTS</th>}
-              {kit === "overall" ? <th>KIT TIERS</th> : <><th>W / L</th><th>WIN RATE</th></>}<th /></tr></thead>
+              {kit === "overall" ? <th>TIERS</th> : <><th>W / L</th><th>WIN RATE</th></>}<th /></tr></thead>
             <tbody>
               {loading ? Array.from({ length: 7 }, (_, index) => <SkeletonRow key={index} overall={kit === "overall"} />)
                 : rows.length ? rows.map((entry) => (
@@ -676,7 +677,7 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                         </span>}
                       </small></span>
                       {entry.title_name && <BadgeCheck size={14} className="verified-mark" />}</div></td>
-                    <td><TierBadge name={entry.tier} color={color(entry.tier)} compact={kit !== "overall"} /></td>
+                    {kit !== "overall" && <td><TierBadge name={entry.tier} color={color(entry.tier)} compact /></td>}
                     {kit !== "overall" && <td className="points-cell">{(entry.points ?? 0).toFixed(0)}
                       {entry.average_points !== undefined && <small> avg</small>}</td>
                     }
@@ -700,7 +701,7 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                     </>}
                     <td><ArrowRight size={15} className="row-arrow" /></td>
                   </tr>
-                )) : <tr><td colSpan={kit === "overall" ? 5 : 7}><EmptyState icon={Trophy} title="No rankings yet"
+                )) : <tr><td colSpan={kit === "overall" ? 4 : 7}><EmptyState icon={Trophy} title="No rankings yet"
                   message="Verified GrindPvP players will appear here as soon as they have rankings." /></td></tr>}
             </tbody>
           </table>
@@ -1284,8 +1285,9 @@ function Skeleton({ className = "" }: { className?: string }) {
 }
 
 function SkeletonRow({ overall = false }: { overall?: boolean }) {
-  return <tr className="skeleton-row"><td><Skeleton /></td><td><Skeleton /></td><td><Skeleton /></td>
-    {overall ? <><td><Skeleton /></td><td /></> : <><td><Skeleton /></td><td><Skeleton /></td><td><Skeleton /></td><td /></>}</tr>;
+  return <tr className="skeleton-row"><td><Skeleton /></td><td><Skeleton /></td>
+    {overall ? <><td><Skeleton /></td><td /></> : <><td><Skeleton /></td><td><Skeleton /></td>
+      <td><Skeleton /></td><td><Skeleton /></td><td /></>}</tr>;
 }
 
 function ProfileSkeleton() {
