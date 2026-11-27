@@ -918,8 +918,11 @@ function ProfileDetail({ title, subtitle, profile, loading, matches, catalog, er
       {loading ? <ProfileSkeleton /> : profile ? <>
         <section className="profile-hero panel">
           <div className="profile-art">
-            {!skinFailed ? <img key={profile.uuid} src={avatarUrl(profile.uuid)} alt={`${profile.username}'s Minecraft skin`}
-              onError={() => setSkinFailed(true)} /> : <img src={avatarUrl(profile.uuid, false)} alt={`${profile.username}'s Minecraft avatar`} />}
+            <div className="profile-art-skin">
+              {!skinFailed ? <img key={profile.uuid} src={avatarUrl(profile.uuid)} alt={`${profile.username}'s Minecraft skin`}
+                onError={() => setSkinFailed(true)} /> : <img className="skin-avatar-fallback"
+                src={avatarUrl(profile.uuid, false)} alt={`${profile.username}'s Minecraft avatar`} />}
+            </div>
             <span className="skin-caption">PLAYER SKIN</span>
           </div>
           <div className="profile-identity">
