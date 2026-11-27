@@ -2467,4 +2467,8 @@ body,
   .page-frame { width: calc(100% - 16px); }
 }
 
-.rank-skin img { right: 50px; }
+.rank-skin img {
+  right: 50px;
+  transform: perspective(500px) rotateY(-30deg);
+  transform-origin: center bottom;
+}
