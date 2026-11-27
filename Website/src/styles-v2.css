@@ -1992,6 +1992,7 @@ body,
 }
 .player-row:hover td { background: #171f2b; }
 .player-row:hover td:first-child { background: transparent; }
+.player-table tbody tr { transform: translateY(-8px); }
 .player-table.is-overall {
   width: 100%;
   min-width: 0;
