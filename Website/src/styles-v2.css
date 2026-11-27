@@ -1961,8 +1961,12 @@ body,
   min-width: 760px;
   padding: 0 8px;
   border-spacing: 0 8px;
+  transform: translateY(-8px);
 }
-.player-table thead { background: transparent; }
+.player-table thead {
+  background: transparent;
+  transform: translateY(8px);
+}
 .player-table th {
   height: 27px;
   border: 0;
@@ -1992,7 +1996,6 @@ body,
 }
 .player-row:hover td { background: #171f2b; }
 .player-row:hover td:first-child { background: transparent; }
-.player-table tbody tr { transform: translateY(-8px); }
 .player-table.is-overall {
   width: 100%;
   min-width: 0;
