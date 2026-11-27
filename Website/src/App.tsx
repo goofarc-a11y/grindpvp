@@ -505,7 +505,7 @@ function KitSidebar({ selectedKit, selectKit }: { selectedKit: string; selectKit
     const Icon = KIT_ICONS[kit] || Swords;
     return (
       <button key={kit} type="button" data-sound-handled className={`kit-link ${selectedKit === kit ? "selected" : ""}`}
-        onClick={() => selectKit(kit)} title={displayKit(kit)}>
+        data-kit={kit} onClick={() => selectKit(kit)} title={displayKit(kit)}>
         <Icon size={16} strokeWidth={1.8} /><span>{displayKit(kit)}</span>
         {selectedKit === kit && <span className="kit-active-dot" />}
       </button>
@@ -599,8 +599,11 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                 : rows.length ? rows.map((entry) => (
                   <tr key={entry.uuid} className="player-row" onClick={() => onProfile(entry.uuid)} tabIndex={0}
                     onKeyDown={(event) => event.key === "Enter" && onProfile(entry.uuid)}>
-                    <td><RankValue rank={entry.rank} /></td>
-                    <td><div className="table-player"><img src={avatarUrl(entry.uuid, false)} alt="" loading="lazy" />
+                    <td><div className={`rank-skin ${entry.rank <= 3 ? `rank-skin-${entry.rank}` : ""}`}>
+                      <RankValue rank={entry.rank} />
+                      <img src={avatarUrl(entry.uuid)} alt="" loading="lazy" />
+                    </div></td>
+                    <td><div className="table-player">
                       <span><strong>{entry.username}</strong><small>{entry.role_name ? `${entry.role_name} · ` : ""}{entry.title_name || "GrindPvP player"}</small></span>
                       {entry.title_name && <BadgeCheck size={14} className="verified-mark" />}</div></td>
                     <td><TierBadge name={entry.tier} color={color(entry.tier)} /></td>
@@ -631,11 +634,11 @@ function PodiumCard({ entry, rank, color, onClick }: {
   return (
     <button type="button" disabled={!entry} className={`podium-card ${order}`} onClick={onClick}>
       <div className="podium-card-top">
-        <div className="podium-rank">{rank === 1 ? <Crown size={17} /> : `0${rank}`}</div>
+        <div className="podium-rank">{rank}.</div>
         <span className="podium-arrow"><ArrowRight size={15} /></span>
       </div>
       {entry ? <>
-        <img className="podium-avatar" src={avatarUrl(entry.uuid, false)} alt="" />
+        <img className="podium-avatar" src={avatarUrl(entry.uuid)} alt="" />
         <span className="podium-username">{entry.username}</span>
         <span className="podium-tier" style={{ color, borderColor: `${color}50`, background: `${color}12` }}>{entry.tier}</span>
         <span className="podium-points">{(entry.points ?? entry.average_points ?? 0).toFixed(entry.average_points !== undefined ? 2 : 0)}
@@ -1070,7 +1073,7 @@ function TierBadge({ name, color, large = false }: { name: string; color: string
 
 function RankValue({ rank }: { rank: number }) {
   return <span className={`rank-value ${rank <= 3 ? `rank-${rank}` : ""}`}>
-    {rank <= 3 ? <Medal size={16} /> : `#${rank.toString().padStart(2, "0")}`}
+    {rank}.
   </span>;
 }
 

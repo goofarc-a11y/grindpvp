@@ -17,7 +17,8 @@ npm run dev
 The website currently loads the v2 visual theme from `src/styles-v2.css` after
 the original `src/styles.css`. To switch back to v1, remove the
 `styles-v2.css` import from `src/main.tsx`; the original stylesheet and all
-website features remain unchanged.
+website features remain unchanged. V2 uses Geist typography, color-coded kit
+tabs, and tiered skin cards inspired by the MCTiers rankings layout.
 
 Vite proxies `/api` requests to the same backend host used by the mod. To point
 the development proxy at a different backend, create `.env.local` and set
