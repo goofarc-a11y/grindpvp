@@ -192,6 +192,10 @@ function App() {
   const [searchResults, setSearchResults] = useState<Player[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [quickSearchOpen, setQuickSearchOpen] = useState(false);
+  const [quickSearchResults, setQuickSearchResults] = useState<Player[]>([]);
+  const [quickSearchLoading, setQuickSearchLoading] = useState(false);
+  const [quickSearchError, setQuickSearchError] = useState("");
   const [myProfileUuid, setMyProfileUuid] = useState(() => localStorage.getItem(MY_PROFILE_KEY) || "");
   const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem(TOKEN_KEY) || "");
   const [statusMessage, setStatusMessage] = useState("");
@@ -349,17 +353,58 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    if (!quickSearchOpen) return;
+
+    const term = searchValue.trim();
+    setQuickSearchResults([]);
+    setQuickSearchError("");
+    setQuickSearchLoading(false);
+    if (term.length < 2) {
+      if (term) setQuickSearchError("Type at least 2 characters to search.");
+      return;
+    }
+
+    let active = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      setQuickSearchLoading(true);
+      api<PageResult<Player>>(`/players?${query({ search: term, page: 1, page_size: 6 })}`, {
+        signal: controller.signal,
+      })
+        .then((result) => {
+          if (active) {
+            setQuickSearchResults(result.items);
+            if (result.items.length === 0) setQuickSearchError("No matching verified GrindPvP profiles.");
+          }
+        })
+        .catch((error: Error) => {
+          if (active && error.name !== "AbortError") {
+            setQuickSearchError(`Player search failed: ${error.message}`);
+          }
+        })
+        .finally(() => active && setQuickSearchLoading(false));
+    }, 220);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [quickSearchOpen, searchValue]);
+
   const handleQuickSearch = (event: FormEvent) => {
     event.preventDefault();
-    const term = searchValue.trim();
-    setProfileUuid("");
-    setProfileDetailView(false);
-    setProfileModalOpen(false);
-    setSearchResults([]);
-    setSearchError("");
-    setStatusMessage("");
-    changePage("profiles");
-    void performSearch(undefined, term);
+    setQuickSearchOpen(true);
+    const term = searchValue.trim().toLocaleLowerCase();
+    const exactMatch = quickSearchResults.find((player) => player.username.toLocaleLowerCase() === term);
+    const player = exactMatch || (quickSearchResults.length === 1 ? quickSearchResults[0] : undefined);
+    if (player) {
+      setQuickSearchOpen(false);
+      setQuickSearchResults([]);
+      setSearchValue(player.username);
+      openProfile(player.uuid);
+    }
   };
 
   const openProfile = (uuid: string, origin: "profiles" | "my-profile" = "profiles") => {
@@ -498,13 +543,43 @@ function App() {
           </a>
         </nav>
         <div className="topbar-right">
-          <form className="quick-profile-search" role="search" onSubmit={handleQuickSearch}>
+          <form className="quick-profile-search" role="search" onSubmit={handleQuickSearch}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setQuickSearchOpen(false);
+            }}>
             <Search size={15} aria-hidden="true" />
             <input aria-label="Search profiles" value={searchValue} maxLength={16}
-              placeholder="Find profile..." onChange={(event) => setSearchValue(event.target.value)} />
-            <button type="submit" aria-label="Search profiles" title="Search profiles" disabled={searchLoading}>
-              {searchLoading ? <LoaderCircle size={14} className="spin" /> : <ArrowRight size={14} />}
+              placeholder="Find profile..." aria-autocomplete="list"
+              aria-expanded={quickSearchOpen && searchValue.trim().length >= 2}
+              onFocus={() => setQuickSearchOpen(true)}
+              onKeyDown={(event) => event.key === "Escape" && setQuickSearchOpen(false)}
+              onChange={(event) => {
+                setSearchValue(event.target.value);
+                setQuickSearchOpen(true);
+              }} />
+            <button type="submit" aria-label="Search profiles" title="Search profiles" disabled={quickSearchLoading}>
+              {quickSearchLoading ? <LoaderCircle size={14} className="spin" /> : <ArrowRight size={14} />}
             </button>
+            {quickSearchOpen && searchValue.trim() && (
+              <div className="quick-profile-results" role="listbox" aria-label="Profile search results">
+                {quickSearchLoading ? <div className="quick-profile-message">
+                  <LoaderCircle size={15} className="spin" /> Searching profiles…
+                </div> : quickSearchError ? <div className="quick-profile-message">{quickSearchError}</div>
+                  : quickSearchResults.map((player) => (
+                    <button key={player.uuid} type="button" className="quick-profile-result" role="option"
+                      onClick={() => {
+                        setQuickSearchOpen(false);
+                        setQuickSearchResults([]);
+                        setSearchValue(player.username);
+                        openProfile(player.uuid);
+                      }}>
+                      <img src={avatarUrl(player.uuid, false)} alt="" />
+                      <span><strong>{player.username}</strong><small>Open quick profile</small></span>
+                      <ArrowRight size={15} />
+                    </button>
+                  ))}
+              </div>
+            )}
           </form>
           <div className={`api-status ${apiOnline ? "online" : apiOnline === false ? "offline" : ""}`}
             title={databaseEngine ? `Connected database: ${databaseEngine}` : undefined}>
