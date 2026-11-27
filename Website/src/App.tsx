@@ -1236,8 +1236,10 @@ function TierBadge({ name, color, large = false }: { name: string; color: string
 }
 
 function RankValue({ rank }: { rank: number }) {
-  return <span className={`rank-value ${rank <= 3 ? `rank-${rank}` : ""}`}>
-    {rank}.
+  const rankLabel = rank >= 100 ? "100+" : `${rank}.`;
+  const rankLengthClass = rank >= 100 ? "rank-value-100-plus" : rank >= 10 ? "rank-value-two-digits" : "";
+  return <span className={`rank-value ${rank <= 3 ? `rank-${rank}` : ""} ${rankLengthClass}`}>
+    {rankLabel}
   </span>;
 }
 

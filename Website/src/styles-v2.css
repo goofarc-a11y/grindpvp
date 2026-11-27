@@ -1281,6 +1281,23 @@ body, .app-shell { background-color: var(--bg); color: var(--text); }
   .rank-skin img { right: 40px; bottom: -76px; }
 }
 
+.rank-skin { background: #111822; }
+.rank-skin-1 { background: #efba3b; }
+.rank-skin-2 { background: #879ea5; }
+.rank-skin-3 { background: #b56329; }
+
+.rank-skin .rank-value-two-digits {
+  min-width: 45px;
+  font-size: 19px;
+  letter-spacing: -0.04em;
+}
+
+.rank-skin .rank-value-100-plus {
+  min-width: 42px;
+  font-size: 15px;
+  letter-spacing: -0.06em;
+}
+
 .profile-art-skin {
   position: relative;
   display: flex;
