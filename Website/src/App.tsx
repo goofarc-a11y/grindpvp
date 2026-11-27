@@ -850,7 +850,7 @@ function ProfileSummaryModal({ profile, loading, catalog, error, onClose, onDeta
           : profile ? <>
             <div className="profile-preview-main">
               <div className="profile-preview-skin">
-                <img src={avatarUrl(profile.uuid, !skinFailed)} alt={`${profile.username}'s Minecraft skin`}
+                <img src={avatarUrl(profile.uuid, skinFailed)} alt={`${profile.username}'s Minecraft avatar`}
                   onError={() => setSkinFailed(true)} />
               </div>
               <div className="profile-preview-identity">
@@ -883,7 +883,9 @@ function ProfileSummaryModal({ profile, loading, catalog, error, onClose, onDeta
               </div>
             </div>
             <div className="profile-preview-kits">
-              <ProfileKitTierGroup title="TIERS" kits={MAIN_KITS} profile={profile} catalog={catalog} />
+              <strong className="profile-preview-tier-heading">TIERS</strong>
+              <ProfileKitTierGroup title="MAIN KITS" kits={MAIN_KITS} profile={profile} catalog={catalog} />
+              <ProfileKitTierGroup title="SUB KITS" kits={SUB_KITS} profile={profile} catalog={catalog} />
             </div>
           </> : <div className="profile-preview-loading">This GrindPvP profile could not be loaded.</div>}
       </section>
