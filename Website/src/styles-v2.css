@@ -2466,3 +2466,5 @@ body,
   .topbar,
   .page-frame { width: calc(100% - 16px); }
 }
+
+.rank-skin img { right: 50px; }
