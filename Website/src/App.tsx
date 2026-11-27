@@ -41,6 +41,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import type { SkinViewer } from "skinview3d";
 import { api, ApiError, query } from "./api";
 import grindPvPLogo from "./assets/grindpvp-logo.png";
 import type {
@@ -172,6 +173,81 @@ function tierColor(name: string, tiers: TierDefinition[]) {
 
 function avatarUrl(uuid: string, body = true) {
   return `https://mc-heads.net/${body ? "body" : "avatar"}/${encodeURIComponent(uuid)}/${body ? "128" : "96"}`;
+}
+
+function skinTextureUrl(uuid: string) {
+  return `https://mc-heads.net/skin/${encodeURIComponent(uuid)}`;
+}
+
+function RankSkinModel({ uuid }: { uuid: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [renderedSkin, setRenderedSkin] = useState<string | null>(null);
+  const [nearViewport, setNearViewport] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    if (!("IntersectionObserver" in window)) {
+      setNearViewport(true);
+      return;
+    }
+
+    const bounds = canvas.getBoundingClientRect();
+    if (bounds.bottom >= -160 && bounds.top <= window.innerHeight + 160) {
+      setNearViewport(true);
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setNearViewport(entry.isIntersecting);
+    }, { rootMargin: "160px 0px" });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !nearViewport || renderedSkin) return;
+
+    let disposed = false;
+    let viewer: SkinViewer | undefined;
+
+    void import("skinview3d").then(({ SkinViewer: SkinViewerClass }) => {
+      if (disposed) return;
+      viewer = new SkinViewerClass({
+        canvas,
+        width: 47,
+        height: 112,
+        pixelRatio: 1,
+        renderPaused: true,
+        enableControls: false,
+        preserveDrawingBuffer: true,
+      });
+      viewer.zoom = 1.05;
+      viewer.playerWrapper.rotation.y = -Math.PI / 6;
+      return viewer.loadSkin(skinTextureUrl(uuid)).then(() => {
+        if (disposed || !viewer) return;
+        viewer.render();
+        setRenderedSkin(canvas.toDataURL("image/png"));
+      });
+    }).catch((error: unknown) => {
+      if (!disposed) console.error(`Failed to render Minecraft skin for ${uuid}`, error);
+    });
+
+    return () => {
+      disposed = true;
+      viewer?.dispose();
+    };
+  }, [nearViewport, renderedSkin, uuid]);
+
+  if (renderedSkin) {
+    return <img className="rank-skin-rendered" src={renderedSkin} alt="" />;
+  }
+  return (
+    <>
+      <canvas ref={canvasRef} className="rank-skin-canvas" aria-hidden="true" />
+      <img className="rank-skin-fallback" src={avatarUrl(uuid)} alt="" loading="lazy" />
+    </>
+  );
 }
 
 function App() {
@@ -738,7 +814,7 @@ function LeaderboardView({ catalog, kit, page, data, loading, error, tierColor: 
                     onKeyDown={(event) => event.key === "Enter" && onProfile(entry.uuid)}>
                     <td><div className={`rank-skin ${entry.rank <= 3 ? `rank-skin-${entry.rank}` : ""}`}>
                       <RankValue rank={entry.rank} />
-                      <img src={avatarUrl(entry.uuid)} alt="" loading="lazy" />
+                      <RankSkinModel uuid={entry.uuid} />
                     </div></td>
                     <td><div className="table-player">
                       <span><strong>{entry.username}</strong><small>
