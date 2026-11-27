@@ -2447,3 +2447,22 @@ body,
   .kit-sidebar.connected .kit-link .kit-asset-icon,
   .kit-sidebar.connected .kit-link svg { width: 20px; height: 20px; }
 }
+
+.topbar,
+.page-frame { width: min(1360px, calc(100% - 48px)); }
+
+.kit-tier-strip { margin-left: 34px; }
+.kit-tier-item { width: 39px; flex-basis: 39px; }
+.kit-tier-ring { width: 33px; height: 33px; }
+.kit-tier-ring .kit-asset-icon { width: 20px; height: 20px; }
+.kit-tier-item > .tier-tag { min-width: 34px; font-size: 10px; }
+
+@media (max-width: 860px) {
+  .topbar,
+  .page-frame { width: calc(100% - 24px); }
+}
+
+@media (max-width: 520px) {
+  .topbar,
+  .page-frame { width: calc(100% - 16px); }
+}
