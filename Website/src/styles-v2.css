@@ -2467,17 +2467,17 @@ body,
   .page-frame { width: calc(100% - 16px); }
 }
 
-.rank-skin .rank-skin-canvas,
-.rank-skin .rank-skin-rendered {
+.rank-skin .rank-skin-image {
   position: absolute;
   z-index: 1;
   right: 50px;
   bottom: -52px;
   width: 47px;
   height: 112px;
+  clip-path: none;
+  object-fit: contain;
+  object-position: top;
+  image-rendering: pixelated;
   pointer-events: none;
-}
-
-.rank-skin .rank-skin-fallback {
-  z-index: 2;
+  transform: none;
 }
